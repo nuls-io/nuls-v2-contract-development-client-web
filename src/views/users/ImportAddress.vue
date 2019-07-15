@@ -18,10 +18,6 @@
         </el-radio>
       </div>
 
-      <div class="btn mb_100" v-show="importRadio==='importKeystore'">
-        <el-button type="success" @click="importKeystore">{{$t('importAddress.importAddress4')}}</el-button>
-      </div>
-
       <div class="w630" :class="this.$route.query.address ? 'mzt_20' : ''" v-show="importRadio==='importKey'">
         <el-form :model="importKeyForm" status-icon :rules="importKeyRules" ref="importKeyForm" class="mb_100">
           <el-form-item :label="$t('importAddress.importAddress5')" prop="key">
@@ -47,7 +43,6 @@
 </template>
 
 <script>
-  import nuls from 'nuls-sdk-js'
   import BackBar from '@/components/BackBar'
   import Password from '@/components/PasswordBar'
   import {chainID, defaultAddressInfo, localStorageByAddressInfo} from '@/api/util'
@@ -119,53 +114,12 @@
     methods: {
 
       /**
-       * keystore 导入
-       **/
-      importKeystore() {
-        let that = this;
-        const {dialog} = require('electron').remote;
-        //console.log(dialog);
-        dialog.showOpenDialog({
-          title: that.$t('importAddress.importAddress14'),
-          properties: ['openFile', 'multiSelections', 'showHiddenFiles']
-        }, (files) => {
-          if (files.length === 1) {
-            let index1 = files[0].lastIndexOf(".");
-            let index2 = files[0].length;
-            let suffixName = files[0].substring(index1 + 1, index2);//后缀名
-            if (suffixName === 'keystore' && RUN_PATTERN) {
-              let fs = require("fs");
-              // 异步读取
-              fs.readFile(files[0], function (err, data) {
-                if (err) {
-                  that.$message({
-                    message: that.$t('importAddress.importAddress15') + err,
-                    type: 'error',
-                    duration: 1000
-                  });
-                  return console.error(err);
-                } else {
-                  that.keystoreInfo = JSON.parse(data.toString());
-                  console.log(that.keystoreInfo);
-                  that.$refs.password.showPassword(true)
-                }
-              });
-            } else {
-              that.$message({message: that.$t('importAddress.importAddress16'), type: 'error', duration: 1000});
-            }
-          } else {
-            that.$message({message: that.$t('importAddress.importAddress17'), type: 'error', duration: 1000});
-          }
-        })
-      },
-
-      /**
        *  获取密码框的密码
        * @param password
        **/
       passSubmit(password) {
         PARAMETER.method = 'importAccountByPriKey';
-        PARAMETER.params = [chainID(), this.keystoreInfo.encryptedPrivateKey,password,true];
+        PARAMETER.params = [chainID(), this.importKeyForm.key, password, true];
         axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
             //console.log(response.data);
@@ -198,11 +152,20 @@
        * 导入私钥方法
        */
       importWallet() {
-        const importAddressInfo = nuls.importByKey(chainID(), this.importKeyForm.key, this.importKeyForm.pass);
-        let newImportAddressInfo = defaultAddressInfo;
-        newImportAddressInfo.address = importAddressInfo.address;
-        newImportAddressInfo.aesPri = importAddressInfo.aesPri;
-        newImportAddressInfo.pub = importAddressInfo.pub;
+        PARAMETER.method = 'importAccountByPriKey';
+        PARAMETER.params = [chainID(), this.keystoreInfo.key, this.keystoreInfo.pass, true];
+        axios.post(LOCALHOST_API_URL, PARAMETER)
+          .then((response) => {
+            //console.log(response.data);
+            if (response.data.hasOwnProperty('result')) {
+              let newImportAddressInfo = defaultAddressInfo;
+              newImportAddressInfo.address = response.data.result.address;
+              localStorageByAddressInfo(newImportAddressInfo);
+              this.toUrl('address')
+            }
+          }).catch((err) => {
+          console.log(err)
+        });
         this.toUrl('address')
       },
 

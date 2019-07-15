@@ -117,7 +117,7 @@
   import BackBar from '@/components/BackBar'
   import SelectBar from '@/components/SelectBar';
   import Call from './Call'
-  import {timesDecimals, getLocalTime, superLong, addressInfo,connectToExplorer} from '@/api/util'
+  import {timesDecimals, getLocalTime, superLong, addressInfo,connectToExplorer,chainIdNumber} from '@/api/util'
   import {getNulsBalance, inputsOrOutputs, validateAndBroadcast} from '@/api/requestData'
   import Password from '@/components/PasswordBar'
 
@@ -145,29 +145,23 @@
         modeList: [],//合约方法列表
         modelData: [],//合约方法列表
         decimals:0,//合约精度系数
+        defaultAddress: '',//默认地址
 
       };
     },
     created() {
-      this.addressInfo = addressInfo(1);
-      setInterval(() => {
-        this.addressInfo = addressInfo(1);
-      }, 500);
+      this.addressInfo.address = localStorage.getItem(chainIdNumber());
       this.getBalanceByAddress(this.addressInfo.chainId, 1, this.addressInfo.address);
     },
     mounted() {
       this.contractInfoByAddress(this.contractAddress);
       this.contractTxList(this.pageIndex, this.pageSize, 0, this.contractAddress);
-      //定时获取地址
-      this.contractAddressInterval = setInterval(() => {
-        //this.contractsAddress= this.$route.query.contractAddress;
-      }, 500)
+      setInterval(() => {
+        this.defaultAddress = localStorage.getItem(chainIdNumber());
+      }, 500);
     },
     beforeDestroy() {
-      //离开界面清除定时器
-      if (this.contractAddressInterval) {
-        clearInterval(this.contractAddressInterval);
-      }
+
     },
     components: {
       BackBar,

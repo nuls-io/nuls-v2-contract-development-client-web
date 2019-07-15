@@ -15,7 +15,7 @@
           <el-submenu index="address" class="user" :disabled="addressList.length === 0">
             <template slot="title"><i class="iconfont iconzhanghu"></i></template>
             <el-menu-item v-for="item of addressList" :key="item.address" :index="item.address">
-              <i class="iconfont iconwo" :class="item.selection ? '' : 'transparent' "></i>
+              <i class="iconfont iconwo" :class="item.address === defaultAddress ? '' : 'transparent' "></i>
               <font v-show="!item.alias"> {{item.addresss}} | </font><span
                     v-show="item.alias">{{item.alias}} | </span><span>{{item.balance}}</span>
             </el-menu-item>
@@ -53,6 +53,7 @@
         navActive: '/',//菜单选中
         addressList: [], //地址列表
         lang: 'cn', //语言选择
+        defaultAddress: '',//默认地址
       };
     },
     components: {},
@@ -60,9 +61,9 @@
       this.getAddressList();
     },
     mounted() {
-     /* setInterval(() => {
-        this.getAddressList();
-      }, 500)*/
+      /* setInterval(() => {
+         this.getAddressList();
+       }, 500)*/
     },
     methods: {
 
@@ -74,17 +75,8 @@
       handleSelect(key, keyPath) {
         if (keyPath.length > 1) {
           if (keyPath[0] === "address") {
-            for (let item  of this.addressList) {
-              //清除选中
-              if (item.selection) {
-                item.selection = false;
-              }
-              //添加选中
-              if (item.address === keyPath[1]) {
-                item.selection = true;
-              }
-            }
-            localStorage.setItem(chainIdNumber(), JSON.stringify(this.addressList));
+            localStorage.setItem(chainIdNumber(), key);
+            this.getAddressList();
           } else if (keyPath[0] === "set") {
             this.$router.push({
               name: keyPath[1]
@@ -125,6 +117,7 @@
             item.addresss = superLong(item.address, 8);
           }
         }
+        this.defaultAddress = localStorage.getItem(chainIdNumber());
       },
 
       /**

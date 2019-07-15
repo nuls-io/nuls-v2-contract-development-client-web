@@ -27,7 +27,7 @@
             <span class="tab_line">|</span>
             <label class="click tab_bn" @click="deleteAddress(scope.row)">{{$t('address.address8')}}</label>
             <span class="tab_line">|</span>
-            <el-link disabled v-if="scope.row.selection">{{$t('public.into')}}</el-link>
+            <el-link disabled v-if="scope.row.address === defaultAddress">{{$t('public.into')}}</el-link>
             <label class="click tab_bn" @click="selectionAddress(scope.row)" v-else>{{$t('public.into')}}</label>
           </template>
         </el-table-column>
@@ -58,9 +58,8 @@
 </template>
 
 <script>
-  import nuls from 'nuls-sdk-js'
   import Password from '@/components/PasswordBar'
-  import {timesDecimals, chainIdNumber, addressInfo, chainID} from '@/api/util'
+  import {chainIdNumber, addressInfo, chainID} from '@/api/util'
   import {LOCALHOST_API_URL, PARAMETER} from '@/config.js'
   import axios from 'axios'
 
@@ -71,6 +70,7 @@
         selectAddressInfo: '', //操作的地址信息
         remarkDialog: false,//备注弹框
         remarkInfo: '',//备注信息
+        defaultAddress: '',//默认地址
       };
     },
     components: {
@@ -80,7 +80,6 @@
       this.getAddressList();
     },
     mounted() {
-      this.getAddressLists(this.addressList);
     },
     methods: {
 
@@ -95,46 +94,12 @@
             name: "newAddress",
             query: {'address': ''}
           })
+        } else {
+          if (!localStorage.hasOwnProperty(chainIdNumber())) {
+            localStorage.setItem(chainIdNumber(), this.addressList[0].address)
+          }
         }
-      },
-
-      /**
-       * 获取地址网络信息
-       * @param addressInfo
-       **/
-      async getAddressInfoByNode(addressInfo) {
-        await this.$post('/', 'getAccount', [addressInfo.address])
-          .then((response) => {
-            //console.log(response);
-            if (response.hasOwnProperty("result")) {
-              for (let item of this.addressList) {
-                if (item.address === addressInfo.address) {
-                  addressInfo.alias = response.result.alias;
-                  addressInfo.balance = timesDecimals(response.result.balance);
-                  addressInfo.consensusLock = timesDecimals(response.result.consensusLock);
-                  addressInfo.totalReward = timesDecimals(response.result.totalReward);
-                  addressInfo.tokens = [];
-                  addressInfo.chainId = nuls.verifyAddress(item.address).chainId;
-                }
-              }
-              //localStorage.setItem(chainIdNumber(), JSON.stringify(this.addressList))
-            }
-          })
-          .catch((error) => {
-            console.log("getAccount:" + error);
-          });
-      },
-
-      /**
-       * 循环获取账户余额及别名
-       * @param addressList
-       **/
-      getAddressLists(addressList) {
-        for (let item of addressList) {
-          setTimeout(() => {
-            this.getAddressInfoByNode(item);
-          }, 500);
-        }
+        this.defaultAddress = localStorage.getItem(chainIdNumber());
       },
 
       /**
@@ -183,18 +148,8 @@
        * @param rowInfo
        **/
       selectionAddress(rowInfo) {
-        //console.log(rowInfo);
-        for (let item  of this.addressList) {
-          //清除选中
-          if (item.selection) {
-            item.selection = false;
-          }
-          //添加选中
-          if (item.address === rowInfo.address) {
-            item.selection = true;
-          }
-        }
-        localStorage.setItem(chainIdNumber(), JSON.stringify(this.addressList));
+        localStorage.setItem(chainIdNumber(), rowInfo.address);
+        this.getAddressList();
         this.$router.push({
           name: 'home',
         })

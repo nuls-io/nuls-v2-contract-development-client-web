@@ -86,6 +86,8 @@
   } from '@/api/requestData'
   import Password from '@/components/PasswordBar'
   import {getArgs, chainID} from '@/api/util'
+  import {LOCALHOST_API_URL, PARAMETER} from '@/config.js'
+  import axios from 'axios'
 
   export default {
     name: "deploy",
@@ -143,7 +145,8 @@
     },
     created() {
       this.createAddress = this.addressInfo.address;
-      this.getBalanceByAddress(this.addressInfo.chainId, 1, this.createAddress);
+      console.log(nuls.verifyAddress(this.addressInfo.address));
+      this.getBalanceByAddress(nuls.verifyAddress(this.addressInfo.address).chainId, 1, this.createAddress);
     },
     mounted() {
       //this.getTxInfoByHash(this.hash);
@@ -152,7 +155,7 @@
       addressInfo(val, old) {
         if (val.address !== old.address && old.address) {
           this.createAddress = val.address;
-          this.getBalanceByAddress(this.addressInfo.chainId, 1, this.createAddress);
+          this.getBalanceByAddress(nuls.verifyAddress(this.addressInfo.address).chainId, 1, this.createAddress);
         }
       },
       fileName(val, old) {
@@ -389,58 +392,20 @@
        * @param password
        **/
       async passSubmit(password) {
-        const pri = nuls.decrypteOfAES(this.addressInfo.aesPri, password);
-        const newAddressInfo = nuls.importByKey(this.addressInfo.chainId, pri, password);
-        let amount = this.contractCreateTxData.gasLimit * this.contractCreateTxData.price;
-        if (newAddressInfo.address === this.addressInfo.address) {
-          let transferInfo = {
-            fromAddress: this.addressInfo.address,
-            assetsChainId: chainID(),
-            assetsId: 1,
-            amount: amount,
-            fee: 100000
-          };
-          let pub = this.addressInfo.pub;
-          let remark = this.deployForm.addtion;
-          let inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 15);
-          let tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 15, this.contractCreateTxData);
-          let txhex = '';
-          //获取手续费
-          let newFee = countFee(tAssemble, 1);
-          //手续费大于0.001的时候重新组装交易及签名
-          if (transferInfo.fee !== newFee) {
-            transferInfo.fee = newFee;
-            inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 15);
-            tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 15, this.contractCreateTxData);
-            txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
-          } else {
-            txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
-          }
-          //console.log(transferInfo);
-          //console.log(txhex);
-          await validateTx(txhex).then((response) => {
-            //console.log(response);
-            if (response.success) {
-              broadcastTx(txhex).then((response) => {
-                //console.log(response);
-                if (response.success) {
-                  this.$router.push({
-                    name: "txList"
-                  })
-                } else {
-                  this.$message({message: this.$t('public.err') + response.data, type: 'error', duration: 1000});
-                }
-              }).catch((err) => {
-                this.$message({message: this.$t('public.err0') + err, type: 'error', duration: 1000});
-              });
-            } else {
-              this.$message({message: this.$t('public.err') + response.data, type: 'error', duration: 1000});
-            }
-          }).catch((err) => {
-            this.$message({message: this.$t('public.err0') + err, type: 'error', duration: 1000});
+
+        let newArgs = getArgs(this.deployForm.parameterList);
+        if (newArgs.allParameter) {
+          PARAMETER.method = 'createContract';
+          PARAMETER.params = [chainID(), 2, 1, this.addressInfo.address, password, this.deployForm.hex, this.deployForm.alias, newArgs.args, this.deployForm.gas, this.deployForm.price, this.deployForm.addtion];
+          axios.post(LOCALHOST_API_URL, PARAMETER)
+            .then((response) => {
+              //console.log(response.data);
+              if (response.data.hasOwnProperty('result')) {
+                this.$message({message: "合约不是成功，合约地址: " + response.data.result.contractAddress, type: 'success', duration: 1000});
+              }
+            }).catch((err) => {
+            console.log(err)
           });
-        } else {
-          this.$message({message: this.$t('address.address13'), type: 'error', duration: 1000});
         }
       },
 

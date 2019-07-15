@@ -51,7 +51,7 @@
   import utils from 'nuls-sdk-js/lib/utils/utils'
   import {getNulsBalance, countFee, inputsOrOutputs, validateAndBroadcast} from '@/api/requestData'
   import Password from '@/components/PasswordBar'
-  import {getArgs, Times, Plus, addressInfo, chainID} from '@/api/util'
+  import {getArgs, Times, Plus, addressInfo, chainID,chainIdNumber} from '@/api/util'
 
   export default {
     data() {
@@ -117,6 +117,7 @@
         },
         contractCallData: {},//调用合约data
         callResult: '',//调用合约结果
+        defaultAddress: '',//默认地址
       };
     },
     props: {
@@ -128,15 +129,14 @@
       Password,
     },
     created() {
+      this.addressInfo.address = localStorage.getItem(chainIdNumber());
       this.callForm.modelData = this.modelList;
-      this.addressInfo = addressInfo(1);
-      setInterval(() => {
-        this.addressInfo = addressInfo(1);
-      }, 500);
       this.getBalanceByAddress(chainID(), 1, this.addressInfo.address);
     },
     mounted() {
-
+      setInterval(() => {
+        this.defaultAddress = localStorage.getItem(chainIdNumber());
+      }, 500);
     },
     watch: {
       modelList(val) {

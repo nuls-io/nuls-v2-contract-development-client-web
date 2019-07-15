@@ -1,7 +1,7 @@
 <template>
   <div class="contract">
     <h3 class="title">
-      {{addressInfo.address}}
+      {{defaultAddress}}
       <span v-show="addressInfo.alias"> | {{addressInfo.alias}}</span>
       <i class="iconfont icon-fuzhi clicks"></i>
     </h3>
@@ -31,7 +31,8 @@
                 <label class="tab_bn" v-if="scope.row.status ===3 || scope.row.status ===-1">--</label>
                 <label class="click tab_bn" v-else @click="toUrl('contractInfo',scope.row.contractAddress,0,'fourth')">{{$t('contract.contract4')}}</label>
                 <i class="el-icon-star-on font20 transparent" v-show="scope.row.creater === addressInfo.address"></i>
-                <el-tooltip :content="$t('public.cancelCollection')" placement="top" v-show="scope.row.creater !== addressInfo.address">
+                <el-tooltip :content="$t('public.cancelCollection')" placement="top"
+                            v-show="scope.row.creater !== addressInfo.address">
                   <i class="el-icon-star-on font20 clicks" @click="cancelCollection(scope.row.contractAddress)"></i>
                 </el-tooltip>
 
@@ -81,25 +82,25 @@
         isCollection: false,//是否收藏
         contractInfo: {},//合约详情
         modelData: [],//合约方法列表
+        defaultAddress: '',//默认地址
       };
     },
     created() {
-      this.addressInfo = addressInfo(1);
-      setInterval(() => {
-        this.addressInfo = addressInfo(1);
-      }, 500);
-
+      this.addressInfo.address = localStorage.getItem(chainIdNumber());
     },
     mounted() {
       this.getMyContractByAddress(this.addressInfo.address);
+      setInterval(() => {
+        this.defaultAddress = localStorage.getItem(chainIdNumber());
+      }, 500);
     },
     components: {
       Deploy,
     },
     watch: {
-      addressInfo(val, old) {
-        if (val.address !== old.address && old.address) {
-          this.getMyContractByAddress(this.addressInfo.address);
+      defaultAddress(val, old) {
+        if (val !== old && old) {
+          this.getMyContractByAddress(val);
         }
       }
     },
@@ -108,7 +109,6 @@
       /**
        * tab 切换
        * @param tab
-       * @param event
        **/
       handleClick(tab) {
         //console.log(tab.name);
@@ -117,7 +117,7 @@
           this.isCollection = false;
           this.contractInfo = {};
           this.modelData = [];
-        }else if(tab.name === 'contractFirst'){
+        } else if (tab.name === 'contractFirst') {
           this.getMyContractByAddress(this.addressInfo.address);
         }
       },
@@ -127,45 +127,10 @@
        * @param address
        **/
       async getMyContractByAddress(address) {
-        //await this.$post('/', 'getContractList', [this.pageIndex, this.pageSize, false, false])
         await this.$post('/', 'getAccountContractList', [this.pageIndex, this.pageSize, address, false, false])
           .then((response) => {
             //console.log(response);
             if (response.hasOwnProperty("result")) {
-              if (response.result.list.length !== 0) {
-                let myContractList = [];
-                for (let item of response.result.list) {
-                  myContractList.push(item.contractAddress)
-                }
-                let newContractList = [...myContractList, ...this.addressInfo.contractList];
-                this.getContractListById(this.pageIndex, this.pageSize, newContractList.length, newContractList);
-              } else {
-                this.getContractListById(this.pageIndex, this.pageSize, this.addressInfo.contractList.length, this.addressInfo.contractList);
-              }
-            } else {
-              this.$message({message: this.$t('contract.contract11') + response.error, type: 'error', duration: 1000});
-            }
-          })
-          .catch((error) => {
-            this.$message({message: this.$t('contract.contract12') + error, type: 'error', duration: 1000});
-          });
-      },
-
-      /**
-       * 获取智能合约列表
-       * @param pageIndex
-       * @param pageSize
-       * @param totalCount
-       * @param contractAddressList
-       **/
-      async getContractListById(pageIndex, pageSize, totalCount, contractAddressList) {
-        await this.$post('/', 'getContractListById', [pageIndex, pageSize, totalCount, contractAddressList])
-          .then((response) => {
-            //console.log(response);
-            if (response.hasOwnProperty("result")) {
-              for (let item of response.result.list) {
-                item.createTime = moment(getLocalTime(item.createTime * 1000)).format('YYYY-MM-DD HH:mm:ss');
-              }
               this.myContractData = response.result.list;
               this.pageTotal = response.result.totalCount;
             } else {
@@ -184,96 +149,6 @@
       myContractPages(val) {
         this.pageIndex = val;
         this.getMyContractByAddress()
-      },
-
-      /**
-       * 搜索合约
-       **/
-      async searchContractByAddress() {
-        if (this.searchContract.length > 30) {
-          await this.$post('/', 'getContract', [this.searchContract])
-            .then((response) => {
-              //console.log(response);
-              if (response.hasOwnProperty("result")) {
-                this.contractInfo = response.result;
-                this.modelData = response.result.methods;
-                let contractList = this.addressInfo.contractList;
-                if (contractList.length !== 0 && contractList.includes(this.contractInfo.contractAddress)) {
-                  this.isCollection = true;
-                } else {
-                  this.isCollection = false;
-                }
-              } else {
-                this.$message({
-                  message: this.$t('contract.contract13') + response.error,
-                  type: 'error',
-                  duration: 1000
-                });
-              }
-            })
-            .catch((error) => {
-              this.$message({message: this.$t('contract.contract14') + error, type: 'error', duration: 1000});
-            });
-        } else {
-          this.$message({message: this.$t('contract.contract15'), type: 'error', duration: 1000});
-        }
-      },
-
-      /**
-       * 收藏合约
-       * @param contractAddress
-       **/
-      collection(contractAddress) {
-        this.isCollection = !this.isCollection;
-        let contractList = this.addressInfo.contractList;
-        if (contractList.length !== 0) {
-          if (contractList.includes(contractAddress)) {
-            for (let [index, elem] of contractList.entries()) {
-              if (elem === contractAddress) {
-                contractList.splice(index, 1);
-              }
-            }
-          } else {
-            contractList.push(contractAddress);
-          }
-        } else {
-          contractList.push(contractAddress);
-        }
-
-        let addressList = addressInfo(0);
-        for (let item of addressList) {
-          if (item.address === this.addressInfo.address) {
-            item.contractList.length = 0;
-            let newArr = [...contractList, ...item.contractList];
-            let oldArr = Array.from(new Set(newArr));
-            item.contractList = [...oldArr]
-          }
-        }
-        localStorage.setItem(chainIdNumber(), JSON.stringify(addressList));
-      },
-
-      /**
-       * 取消收藏合约
-       * @param contractAddress
-       **/
-      cancelCollection(contractAddress) {
-        let contractList = this.addressInfo.contractList;
-        if (contractList.includes(contractAddress)) {
-          for (let [index, elem] of contractList.entries()) {
-            if (elem === contractAddress) {
-              contractList.splice(index, 1);
-            }
-          }
-        }
-        let addressList = addressInfo(0);
-        for (let item of addressList) {
-          if (item.address === this.addressInfo.address) {
-            item.contractList.length = 0;
-            item.contractList = [...contractList]
-          }
-        }
-        localStorage.setItem(chainIdNumber(), JSON.stringify(addressList));
-        this.getMyContractByAddress(this.addressInfo.address);
       },
 
       /**
