@@ -191,9 +191,13 @@ export function getArgs(parameterList) {
     for (let itme of parameterList) {
       if (itme.required && itme.value) {
         allParameter = true;
-        newArgs.push(itme.value)
-      } else {
+        newArgs.push(itme.value);
+      } else if(itme.required && !itme.value) {
         allParameter = false
+      }else if(itme.value==undefined){
+        newArgs.push("");
+      }else{
+        newArgs.push(itme.value);
       }
     }
     if (allParameter) {

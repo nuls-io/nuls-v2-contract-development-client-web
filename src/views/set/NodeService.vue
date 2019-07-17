@@ -268,6 +268,7 @@
        **/
       async testSubmitForm(formName) {
         let that = this;
+         console.log(this.nodeServiceForm.urls);
         this.$refs[formName].validate((valid) => {
           if (valid) {
             that.nodeServiceDialogLoading = true;
@@ -278,17 +279,20 @@
                 if (response.data.hasOwnProperty("result")) {
                   that.testInfo.state = 1;
                   that.testInfo.result = response.data.result;
+                         console.log(response.data.result);
                   that.nodeServiceDialogLoading = false;
                 } else {
-                  that.testInfo.state = 200000;
-                  that.testInfo.result = response.data;
+                console.log( response.data.error.message);
+                  that.testInfo.state = 2;
+                  that.testInfo.result = response.data.error.message;
                   that.nodeServiceDialogLoading = false;
                 }
               })
               .catch(function (error) {
+                console.log(error.message);
                 console.log(that.testInfo.success);
                 that.testInfo.state = 300000;
-                that.testInfo.result = error;
+                that.testInfo.result = error.message;
                 console.log("getBestBlockHeader:" + error);
                 that.nodeServiceDialogLoading = false;
               });
@@ -313,6 +317,9 @@
        * @param formName
        */
       async submitForm(formName) {
+             console.log(formName);
+             console.log(this.testInfo.result.defaultAsset.assetId);
+              console.log(this.testInfo.result.defaultAsset);
         this.$refs[formName].validate((valid) => {
           if (valid) {
             let newNodeInfo = {
@@ -322,7 +329,7 @@
               selection: false,
               isDelete: true,
               chainId: this.testInfo.result.chainId,
-              assetId: this.testInfo.result.assetId,
+              assetId: this.testInfo.result.assets.assetId,
               chainName: this.testInfo.result.chainName,
               decimals: this.testInfo.result.defaultAsset.decimals
             };

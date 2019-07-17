@@ -201,11 +201,13 @@
       async getParameter() {
         if (this.deployForm.hex.length > 500) {
           this.deployLoading = true;
+        //  console.log("hex.length="+this.deployForm.hex.length);
           let parameter = await getContractConstructor(this.deployForm.hex);
           if (parameter.success) {
             this.deployLoading = false;
-            if (parameter.data.args.length !== 0) {
-              this.deployForm.parameterList = parameter.data.args
+           // console.log(parameter.data);
+            if (parameter.data.length !== 0) {
+              this.deployForm.parameterList = parameter.data
             } else {
               this.changeParameter();
             }
@@ -235,13 +237,17 @@
        * @param args
        */
       async validateContractCreate(createAddress, gasLimit, price, contractCode, args) {
-        return await this.$post('/', 'validateContractCreate', [createAddress, gasLimit, price, contractCode, args])
+        PARAMETER.method = 'validateContractCreate';
+        PARAMETER.params = [chainID(), createAddress, gasLimit, price, contractCode, args];
+        console.log(PARAMETER.params);
+        return  axios.post(LOCALHOST_API_URL,PARAMETER)
           .then((response) => {
-            //console.log(response.result);
-            if (response.result.success) {
-              this.imputedContractCreateGas(createAddress, contractCode, args, this.deployForm.alias);
+            console.log("validateContractCreate response: "+response);
+            console.log(response);
+            if (response.data.hasOwnProperty("result")) {
+              this.imputedContractCreateGas(createAddress, contractCode, args);
             } else {
-              this.$message({message: this.$t('deploy.deploy11') + response.error, type: 'error', duration: 1000});
+              this.$message({message: this.$t('deploy.deploy11') + response.data.error.message, type: 'error', duration: 1000});
             }
           })
           .catch((error) => {
@@ -257,18 +263,21 @@
        * @param alias
        */
       async imputedContractCreateGas(createAddress, contractCode, args) {
-        return await this.$post('/', 'imputedContractCreateGas', [createAddress, contractCode, args])
+        PARAMETER.method = 'imputedContractCreateGas';
+        PARAMETER.params = [chainID(),createAddress, contractCode, args];
+        return axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            //console.log(response);
-            if (response.hasOwnProperty("result")) {
-              this.deployForm.gas = response.result.gasLimit;
-              this.makeCreateData(response.result.gasLimit, createAddress, contractCode, args, this.deployForm.alias);
+            console.log("imputedContractCreateGas response");
+              console.log(response);
+            if (response.data.hasOwnProperty("result")) {
+              this.deployForm.gas = response.data.result.gasLimit;
+              this.makeCreateData(response.data.result.gasLimit, createAddress, contractCode, args, this.deployForm.alias);
             } else {
-              this.$message({message: this.$t('deploy.deploy13') + response.error, type: 'error', duration: 1000});
+              this.$message({message: this.$t('deploy.deploy13') + response.data.error.message, type: 'error', duration: 1000});
             }
           })
           .catch((error) => {
-            this.$message({message: this.$t('deploy.deploy14') + error, type: 'error', duration: 1000});
+            this.$message({message: this.$t('deploy.deploy14') + error.message, type: 'error', duration: 1000});
           });
       },
 
@@ -345,9 +354,12 @@
       testSubmitForm(formName) {
         this.$refs[formName].validate((valid) => {
           if (valid) {
+          console.log(formName);
             let newArgs = getArgs(this.deployForm.parameterList);
+             console.log(newArgs);
             if (newArgs.allParameter) {
-              this.testDeploy(this.createAddress, this.deployForm.gas, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args);
+              this.testDeploy(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args);
+              this.$message({type: 'success', message: this.$t('nodeService.deploy16')});
             }
           } else {
             return false;
@@ -357,18 +369,10 @@
 
       //测试部署合约
       async testDeploy(createAddress, gasLimit, price, contractCode, args) {
-        await this.$post('/', 'validateContractCreate', [createAddress, gasLimit, price, contractCode, args])
-          .then((response) => {
-            //console.log(response.result);
-            if (response.result.success) {
-              this.$message({message: this.$t('deploy.deploy16'), type: 'success', duration: 1000});
-            } else {
-              this.$message({message: this.$t('deploy.deploy11') + response.error, type: 'error', duration: 1000});
-            }
-          })
-          .catch((error) => {
-            this.$message({message: this.$t('deploy.deploy12') + error, type: 'error', duration: 1000});
-          });
+      console.log(createAddress);
+      console.log(args);
+        console.log(gasLimit);
+        this.validateContractCreate(createAddress, gasLimit, price, this.deployForm.hex, args);
 
       },
 
@@ -392,16 +396,16 @@
        * @param password
        **/
       async passSubmit(password) {
-
         let newArgs = getArgs(this.deployForm.parameterList);
         if (newArgs.allParameter) {
           PARAMETER.method = 'createContract';
           PARAMETER.params = [chainID(), 2, 1, this.addressInfo.address, password, this.deployForm.hex, this.deployForm.alias, newArgs.args, this.deployForm.gas, this.deployForm.price, this.deployForm.addtion];
-          axios.post(LOCALHOST_API_URL, PARAMETER)
+           axios.post(LOCALHOST_API_URL, PARAMETER)
             .then((response) => {
-              //console.log(response.data);
+            console.log("createContract response:");
+              console.log(response.data);
               if (response.data.hasOwnProperty('result')) {
-                this.$message({message: "合约不是成功，合约地址: " + response.data.result.contractAddress, type: 'success', duration: 1000});
+                this.$message({message: "合约部署成功，合约地址: " + response.data.result.contractAddress, type: 'success', duration: 1000});
               }
             }).catch((err) => {
             console.log(err)
@@ -424,18 +428,23 @@
             //获取文件流
             let reader = new FileReader();
             reader.readAsDataURL(file);
+           // console.log(reader.result);
             reader.onload = (() => {
-              _this.$post('/', 'uploadContractJar', [reader.result])
+             PARAMETER.method = 'uploadContractJar';
+             PARAMETER.params = [chainID(), reader.result];
+             console.log(reader.result);
+              axios.post(LOCALHOST_API_URL,PARAMETER)
                 .then((response) => {
-                  //console.log(response);
-                  if (response.hasOwnProperty("result")) {
-                    _this.deployForm.hex = response.result.code;
+              //    console.log("respone: "+response);
+              //    console.log(response);
+                  if (response.data.hasOwnProperty("result")) {
+                    _this.deployForm.hex = response.data.result.code;
                     _this.getParameter();
                   } else {
-                    this.$message({message: this.$t('deploy.deploy17'), type: 'error', duration: 1000});
+                    this.$message({message:response.data.error.message, type: 'error', duration: 1000});
                   }
                 }).catch((err) => {
-                this.$message({message: this.$t('deploy.deploy18') + err, type: 'error', duration: 1000});
+                this.$message({message: err, type: 'error', duration: 1000});
               })
             });
           }
