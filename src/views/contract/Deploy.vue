@@ -59,15 +59,15 @@
         </div>
       </div>
       <el-form-item class="form-next">
-        <el-button type="success" @click="testSubmitForm('deployForm')">
+        <el-button type="success" @click="submitTestDeploy('deployForm')">
           {{$t('deploy.deploy5')}}
         </el-button>
         <br/>
         <div class="mb_20"></div>
-        <el-button @click="submitForm('deployForm')">{{$t('deploy.deploy6')}}</el-button>
+        <el-button @click="submitDeploy('deployForm')">{{$t('deploy.deploy6')}}</el-button>
       </el-form-item>
     </el-form>
-    <Password ref="password" @passwordSubmit="passSubmit">
+    <Password ref="password" @passwordSubmit="confirmDeploy">
     </Password>
   </div>
 </template>
@@ -212,7 +212,7 @@
               this.changeParameter();
             }
           } else {
-            this.$message({message: this.$t('deploy.deploy10') + parameter.data.error, type: 'error', duration: 1000});
+            this.$message({message: this.$t('deploy.deploy10') + parameter.data.error, type: 'error', duration: 2000});
           }
         }
       },
@@ -247,11 +247,11 @@
             if (response.data.hasOwnProperty("result")) {
               this.imputedContractCreateGas(createAddress, contractCode, args);
             } else {
-              this.$message({message: this.$t('deploy.deploy11') + response.data.error.message, type: 'error', duration: 1000});
+              this.$message({message: this.$t('deploy.deploy11') + response.data.error.message, type: 'error', duration: 2000});
             }
           })
           .catch((error) => {
-            this.$message({message: this.$t('deploy.deploy12') + error, type: 'error', duration: 1000});
+            this.$message({message: this.$t('deploy.deploy12') + error, type: 'error', duration: 2000});
           });
       },
 
@@ -273,11 +273,11 @@
               this.deployForm.gas = response.data.result.gasLimit;
               this.makeCreateData(response.data.result.gasLimit, createAddress, contractCode, args, this.deployForm.alias);
             } else {
-              this.$message({message: this.$t('deploy.deploy13') + response.data.error.message, type: 'error', duration: 1000});
+              this.$message({message: this.$t('deploy.deploy13') + response.data.error.message, type: 'error', duration: 2000});
             }
           })
           .catch((error) => {
-            this.$message({message: this.$t('deploy.deploy14') + error.message, type: 'error', duration: 1000});
+            this.$message({message: this.$t('deploy.deploy14') + error.message, type: 'error', duration: 2000});
           });
       },
 
@@ -322,9 +322,10 @@
         }
         contractCreate.contractAddress = sdk.getStringContractAddress(chainID());
         if (!contractCreate.chainId || !contractCreate.contractAddress || !contractCreate.contractCode || !contractCreate.gasLimit || !contractCreate.price || !contractCreate.sender) {
-          this.$message({message: this.$t('deploy.deploy15'), type: 'error', duration: 1000});
+          this.$message({message: this.$t('deploy.deploy15'), type: 'error', duration: 2000});
         } else {
           this.contractCreateTxData = contractCreate;
+           this.$message({message: this.$t('deploy.deploy16'), type: 'success', duration: 2000});
         }
       },
 
@@ -340,10 +341,10 @@
           if (response.success) {
             this.balanceInfo = response.data;
           } else {
-            this.$message({message: this.$t('public.err2') + response, type: 'error', duration: 1000});
+            this.$message({message: this.$t('public.err2') + response, type: 'error', duration: 2000});
           }
         }).catch((error) => {
-          this.$message({message: this.$t('public.err3') + error, type: 'error', duration: 1000});
+          this.$message({message: this.$t('public.err3') + error, type: 'error', duration: 2000});
         });
       },
 
@@ -351,15 +352,15 @@
        * 测试部署合约
        * @param formName
        **/
-      testSubmitForm(formName) {
+      submitTestDeploy(formName) {
         this.$refs[formName].validate((valid) => {
           if (valid) {
           console.log(formName);
             let newArgs = getArgs(this.deployForm.parameterList);
              console.log(newArgs);
             if (newArgs.allParameter) {
-              this.testDeploy(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args);
-              this.$message({type: 'success', message: this.$t('nodeService.deploy16')});
+              this.validateContractCreate(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args);
+
             }
           } else {
             return false;
@@ -372,15 +373,14 @@
       console.log(createAddress);
       console.log(args);
         console.log(gasLimit);
-        this.validateContractCreate(createAddress, gasLimit, price, this.deployForm.hex, args);
-
+       this.validateContractCreate(createAddress, gasLimit, price, this.deployForm.hex, args);
       },
 
       /**
        * 部署合约
        * @param formName
        **/
-      submitForm(formName) {
+      submitDeploy(formName) {
         this.$refs[formName].validate((valid) => {
           if (valid) {
             this.isTestSubmit = false;
@@ -395,7 +395,7 @@
        *  获取密码框的密码
        * @param password
        **/
-      async passSubmit(password) {
+      async confirmDeploy(password) {
         let newArgs = getArgs(this.deployForm.parameterList);
         if (newArgs.allParameter) {
           PARAMETER.method = 'createContract';
@@ -405,7 +405,9 @@
             console.log("createContract response:");
               console.log(response.data);
               if (response.data.hasOwnProperty('result')) {
-                this.$message({message: "合约部署成功，合约地址: " + response.data.result.contractAddress, type: 'success', duration: 1000});
+                this.$message({message: "合约部署成功，合约地址: " + response.data.result.contractAddress, type: 'success', duration: 2000});
+              }else{
+              this.$message({message: "合约部署失败: " + response.data.error.message, type: 'error', duration: 2000});
               }
             }).catch((err) => {
             console.log(err)
@@ -441,10 +443,10 @@
                     _this.deployForm.hex = response.data.result.code;
                     _this.getParameter();
                   } else {
-                    this.$message({message:response.data.error.message, type: 'error', duration: 1000});
+                    this.$message({message:response.data.error.message, type: 'error', duration: 2000});
                   }
                 }).catch((err) => {
-                this.$message({message: err, type: 'error', duration: 1000});
+                this.$message({message: err, type: 'error', duration: 2000});
               })
             });
           }

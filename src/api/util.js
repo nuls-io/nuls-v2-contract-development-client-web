@@ -185,19 +185,22 @@ export function getLocalTime(time) {
  */
 export function getArgs(parameterList) {
   let newArgs = [];
-  let allParameter = false;
+  let allParameter = true;
   if (parameterList.length !== 0) {
     //循环获取必填参数
     for (let itme of parameterList) {
-      if (itme.required && itme.value) {
-        allParameter = true;
-        newArgs.push(itme.value);
-      } else if(itme.required && !itme.value) {
-        allParameter = false
-      }else if(itme.value==undefined){
-        newArgs.push("");
+      if(itme.required){
+        if(itme.value){
+          newArgs.push(itme.value);
+        }else{
+          allParameter = false
+        }
       }else{
-        newArgs.push(itme.value);
+        if(itme.value==undefined){
+          newArgs.push("");
+        }else{
+          newArgs.push(itme.value);
+        }
       }
     }
     if (allParameter) {

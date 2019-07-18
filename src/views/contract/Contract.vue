@@ -127,9 +127,10 @@
        * @param address
        **/
       async getMyContractByAddress(address) {
+      console.log(address);
         await this.$post('/', 'getAccountContractList', [this.pageIndex, this.pageSize, address, false, false])
           .then((response) => {
-            //console.log(response);
+            console.log(response);
             if (response.hasOwnProperty("result")) {
               this.myContractData = response.result.list;
               this.pageTotal = response.result.totalCount;
@@ -148,7 +149,7 @@
        **/
       myContractPages(val) {
         this.pageIndex = val;
-        this.getMyContractByAddress()
+        this.getMyContractByAddress(this.addressInfo.address);
       },
 
       /**
