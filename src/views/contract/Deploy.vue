@@ -78,11 +78,11 @@
   import utils from 'nuls-sdk-js/lib/utils/utils'
   import {
     getNulsBalance,
-    countFee,
-    inputsOrOutputs,
+   // countFee,
+   // inputsOrOutputs,
     getContractConstructor,
-    validateTx,
-    broadcastTx,
+   // validateTx,
+   // broadcastTx,
   } from '@/api/requestData'
   import Password from '@/components/PasswordBar'
   import {getArgs, chainID} from '@/api/util'

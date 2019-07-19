@@ -117,7 +117,7 @@
   import BackBar from '@/components/BackBar'
   import SelectBar from '@/components/SelectBar';
   import Call from './Call'
-  import {timesDecimals, getLocalTime, superLong, addressInfo,connectToExplorer,chainIdNumber} from '@/api/util'
+  import {timesDecimals, getLocalTime, superLong, connectToExplorer,chainIdNumber} from '@/api/util'
   import {getNulsBalance, inputsOrOutputs, validateAndBroadcast} from '@/api/requestData'
   import Password from '@/components/PasswordBar'
 
@@ -180,9 +180,9 @@
     },
     methods: {
 
-      handleClick(tab, event) {
+     // handleClick(tab, event) {
        // console.log(tab, event);
-      },
+    //  },
 
       /**
        * 合约详情根据合约地址
@@ -196,7 +196,16 @@
               response.result.createTxHashs = superLong(response.result.createTxHash, 5);
               response.result.balance = timesDecimals(response.result.balance);
               this.contractInfo = response.result;
-              this.modelData = response.result.methods;
+              this.modelData = (function () {
+                                    var methodsFilter=[];
+                                  var methods =response.result.methods;
+                                     for(var i=0;i<methods.length;i++){
+                                        if(methods[i].name!='<init>' && methods[i].name!='_payable'){
+                                            methodsFilter.push(methods[i]);
+                                        }
+                                     }
+                                   return methodsFilter;
+                               })();
               this.decimals = response.result.decimals;
               this.modeList = response.result.methods;
               this.isCancel = this.addressInfo.address === this.contractInfo.creater

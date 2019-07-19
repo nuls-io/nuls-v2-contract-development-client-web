@@ -101,10 +101,10 @@
 </template>
 
 <script>
-  import nuls from 'nuls-sdk-js'
+ // import nuls from 'nuls-sdk-js'
   import Password from '@/components/PasswordBar'
   import BackBar from '@/components/BackBar'
-  import {copys, chainID, chainIdNumber, addressInfo, defaultAddressInfo, localStorageByAddressInfo} from '@/api/util'
+  import {copys, chainID, chainIdNumber, addressInfo, defaultAddressInfo} from '@/api/util'
   import {RUN_PATTERN, LOCALHOST_API_URL, PARAMETER} from '@/config.js'
   import axios from 'axios'
 

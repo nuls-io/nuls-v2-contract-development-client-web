@@ -63,8 +63,8 @@
 </template>
 
 <script>
-  import moment from 'moment'
-  import {getLocalTime, chainIdNumber, addressInfo, connectToExplorer} from '@/api/util'
+  //import moment from 'moment'
+  import {chainIdNumber,connectToExplorer} from '@/api/util'
   import Deploy from './Deploy'
 
   export default {

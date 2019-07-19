@@ -3,7 +3,7 @@
     <el-form :model="callForm" :rules="callRules" ref="callForm" class="call-form">
       <el-form-item label="" prop="region" class="search-model">
         <el-select v-model="callForm.modelValue" :placeholder="$t('call.call1')" @change="changeModel">
-          <el-option v-for="item in callForm.modelData" v-if="item.name!='<init>' && item.name!='_payable'" :key="item.name" :label="item.name"
+          <el-option v-for="item in callForm.modelData"  :key="item.name" :label="item.name"
                      :value="item.name">
           </el-option>
         </el-select>
@@ -50,15 +50,15 @@
 </template>
 
 <script>
-  import nuls from 'nuls-sdk-js'
+  //import nuls from 'nuls-sdk-js'
   import sdk from 'nuls-sdk-js/lib/api/sdk'
   import utils from 'nuls-sdk-js/lib/utils/utils'
-  import {getNulsBalance, countFee, inputsOrOutputs, validateAndBroadcast} from '@/api/requestData'
+  import {getNulsBalance} from '@/api/requestData'
   import Password from '@/components/PasswordBar'
-  import {getArgs, Times, Plus, addressInfo, chainID,chainIdNumber} from '@/api/util'
+  import {getArgs, Times, chainID,chainIdNumber} from '@/api/util'
   import {LOCALHOST_API_URL, PARAMETER} from '@/config.js'
   import axios from 'axios'
-  import {post,localhostPost} from '@/api/https'
+  import {post} from '@/api/https'
 
   export default {
     data() {
