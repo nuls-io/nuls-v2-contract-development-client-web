@@ -19,7 +19,7 @@
 <script>
   import nuls from 'nuls-sdk-js'
   import axios from 'axios'
-  import {defaultData} from '@/config.js'
+  import {defaultData,API_URL} from '@/config.js'
   import {chainID, chainIdNumber, addressInfo, timesDecimals} from '@/api/util'
 
   export default {
@@ -81,7 +81,8 @@
        * 获取主网最新高度和本地高度
        */
       getHeaderInfo() {
-        const url = localStorage.hasOwnProperty('urls') ? JSON.parse(localStorage.getItem('urls')).urls : 'http://192.168.1.40:18003/';
+       // const url = localStorage.hasOwnProperty('urls') ? JSON.parse(localStorage.getItem('urls')).urls : 'http://192.168.1.40:18003/';
+        const url =  API_URL;
         const params = {"jsonrpc": "2.0", "method": "getInfo", "params": [chainID()], "id": 5898};
         axios.post(url, params)
           .then((response) => {

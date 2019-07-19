@@ -89,7 +89,10 @@
       this.addressInfo.address = localStorage.getItem(chainIdNumber());
     },
     mounted() {
-      this.getMyContractByAddress(this.addressInfo.address);
+       console.log(this.addressInfo.address);
+       if(this.addressInfo.address){
+             this.getMyContractByAddress(this.addressInfo.address);
+       }
       setInterval(() => {
         this.defaultAddress = localStorage.getItem(chainIdNumber());
       }, 500);
@@ -111,14 +114,20 @@
        * @param tab
        **/
       handleClick(tab) {
-        //console.log(tab.name);
+        console.log(tab.name);
         if (tab.name === 'contractSecond') {
           this.searchContract = '';
           this.isCollection = false;
           this.contractInfo = {};
           this.modelData = [];
         } else if (tab.name === 'contractFirst') {
-          this.getMyContractByAddress(this.addressInfo.address);
+          this.addressInfo.address = localStorage.getItem(chainIdNumber());
+          if(this.addressInfo.address){
+               this.getMyContractByAddress(this.addressInfo.address);
+          }else{
+            this.$message({message: this.$t('error.ac_0052'), type: 'error', duration: 1000});
+          }
+
         }
       },
 
@@ -127,15 +136,13 @@
        * @param address
        **/
       async getMyContractByAddress(address) {
-      console.log(address);
         await this.$post('/', 'getAccountContractList', [this.pageIndex, this.pageSize, address, false, false])
           .then((response) => {
-            console.log(response);
             if (response.hasOwnProperty("result")) {
               this.myContractData = response.result.list;
               this.pageTotal = response.result.totalCount;
             } else {
-              this.$message({message: this.$t('contract.contract11') + response.error, type: 'error', duration: 1000});
+              this.$message({message: this.$t('contract.contract11') + response.error.data, type: 'error', duration: 1000});
             }
           })
           .catch((error) => {
