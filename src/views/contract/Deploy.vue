@@ -145,7 +145,7 @@
     },
     created() {
       this.createAddress = this.addressInfo.address;
-      console.log(nuls.verifyAddress(this.addressInfo.address));
+      //console.log(nuls.verifyAddress(this.addressInfo.address));
       this.getBalanceByAddress(nuls.verifyAddress(this.addressInfo.address).chainId, 1, this.createAddress);
     },
     mounted() {
@@ -406,6 +406,16 @@
               console.log(response.data);
               if (response.data.hasOwnProperty('result')) {
                 this.$message({message: "合约部署成功，合约地址: " + response.data.result.contractAddress, type: 'success', duration: 2000});
+                 this.fileName = '';
+                 this.deployForm = {
+                              alias: '',
+                              hex: '',
+                              parameterList: [],
+                              senior: false,
+                              gas: '',
+                              price: '',
+                              addtion: '',
+                            };
               }else{
               this.$message({message: "合约部署失败: " + response.data.error.message, type: 'error', duration: 2000});
               }

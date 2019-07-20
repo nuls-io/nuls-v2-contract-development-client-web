@@ -27,7 +27,7 @@
             <el-input v-model="callForm.price"></el-input>
           </el-form-item>
           <el-form-item label="Value" prop="values" v-show="selectionData.payable">
-            <el-input v-model="callForm.values"></el-input>
+            <el-input v-model="callForm.values" @change="changeParameter"></el-input>
           </el-form-item>
           <el-form-item :label="$t('public.remarks')" prop="addtion">
              <el-input type="textarea" :rows="3" maxlength="200" show-word-limit v-model="callForm.addtion">
@@ -168,13 +168,16 @@
           if (itme.name === val) {
             this.selectionData = itme;
             this.callForm.parameterList = itme.params;
-            if(itme.params.length === 0 && !itme.view){
-              this.chainMethodCall();
-            }
             if (itme.view) {
               this.callForm.gas = 0;
               //this.callForm.price = 0;
               this.callForm.values = 0;
+            }else{
+                if(itme.params.length > 0 ){
+                  this.chainMethodCall();
+                }else{
+                this.callForm.price = sdk.CONTRACT_MINIMUM_PRICE;
+                }
             }
           }
         }
@@ -275,7 +278,7 @@
             console.log(response);
             if (response.result.success) {
               //return {success: true, data: response.result};
-              this.imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args)
+              this.imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args);
             } else {
               this.$message({message: this.$t('call.call6') + response.result.msg, type: 'error', duration: 2000});
             }

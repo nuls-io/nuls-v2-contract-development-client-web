@@ -604,23 +604,25 @@ const cn = {
     "address11": "确 定",
     "address12": "对不起，账户余额不足",
     "address13": "密码错误",
+    "address14": "获取地址列表失败",
+    "address15": "移除地址失败：",
     "address": "",
 
   },
 
   "newAddress": {
-    "newAddress0": "创建钱包",
+    "newAddress0": "创建账户",
     "newAddress1": "备份账户",
     "newAddress2": "设置密码",
     "newAddress3": "备份",
-    "newAddress4": "请设置密码用以导入账户、转账、参与共识等重要行为验证",
+    "newAddress4": "请设置密码用以导入账户",
     "newAddress5": "请认真保存钱包密码，NULS钱包不存储密码，也无法帮您找回，请务必牢记",
     "newAddress6": "密码",
     "newAddress7": "确认密码",
     "newAddress8": "我理解我需要保存好我的密码，否则可能造成资产丢失",
     "newAddress9": "用户协议",
     "newAddress10": "下一步",
-    "newAddress11": "导入钱包",
+    "newAddress11": "导入私钥",
     "newAddress12": "您的账户地址",
     "newAddress13": "请保存好你的keystore或私钥，如若遗失，NULS将无法帮你找回",
     "newAddress14": "请勿向他人分享！ 如在恶意网站使用此文件，您的资金可能面临被盗窃的风险",
@@ -639,6 +641,7 @@ const cn = {
     "newAddress27": "文件保存完成，位置:",
     "newAddress28": "请选择keystore文件的保存位置",
     "newAddress29": "请选择知晓密码提示",
+    "newAddress30": "创建账户失败：",
     "newAddress": "",
 
   },
@@ -662,14 +665,14 @@ const cn = {
 
   "importAddress": {
     "importAddress0": "创建地址",
-    "importAddress1": "导入钱包",
+    "importAddress1": "导入私钥",
     "importAddress2": "Keystore 导入",
     "importAddress3": "私钥导入",
     "importAddress4": "选择keystore文件",
     "importAddress5": "请输入你的私钥:",
     "importAddress6": "密码",
     "importAddress7": "确认密码",
-    "importAddress8": "导入钱包",
+    "importAddress8": "导入私钥",
     "importAddress9": "私钥不能为空",
     "importAddress10": "请输入密码",
     "importAddress11": "请输入由字母和数字组合的8-20位密码",
@@ -679,6 +682,7 @@ const cn = {
     "importAddress15": "keystore导入失败，请重启再试一次 ",
     "importAddress16": "请选择正确的keystore文件",
     "importAddress17": "请选择一个要导入keystore文件",
+    "importAddress18": "导入私钥失败：",
   },
 
   "setAlias": {

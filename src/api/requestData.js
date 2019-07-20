@@ -1,6 +1,5 @@
 import {post,localhostPost} from './https'
 import {Plus, chainID} from './util'
-import * as config from './../config.js'
 
 /**
  * 判断是否为主网
@@ -229,7 +228,7 @@ export async function agentDeposistList(agentHash) {
  */
 export async function getContractConstructor(contractCodeHex) {
  // console.log("contractCodeHex : "+contractCodeHex);
-  return await localhostPost(config.LOCALHOST_API_URL, 'getContractConstructor', [contractCodeHex])
+  return await localhostPost('', 'getContractConstructor', [contractCodeHex])
     .then((response) => {
     //  console.log(response);
       if (response.hasOwnProperty("result")) {

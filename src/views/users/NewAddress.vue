@@ -125,7 +125,7 @@
       };
       let validatePassTwo = (rule, value, callback) => {
         if (value === '') {
-          callback(new Error(this.$t('newAddress.newAddress24')));
+         callback(new Error(this.$t('newAddress.newAddress24')));
         } else if (value !== this.passwordForm.pass) {
           callback(new Error(this.$t('newAddress.newAddress25')));
         } else {
@@ -138,8 +138,8 @@
         keyDialog: false, //key弹框
         ifAddressInfo: localStorage.hasOwnProperty(chainIdNumber),//判断是否账户地址
         passwordForm: {
-          pass: 'nuls123456',
-          checkPass: 'nuls123456',
+          pass: '',
+          checkPass: '',
           agreement: true,
         },
         passwordRules: {
@@ -180,19 +180,23 @@
        * @param formName
        */
       submitPasswordForm(formName) {
+      console.log(this.passwordForm.pass);
         this.$refs[formName].validate((valid) => {
           if (valid) {
             PARAMETER.method = 'createAccount';
             PARAMETER.params = [chainID(), this.passwordForm.pass];
             axios.post(LOCALHOST_API_URL, PARAMETER)
               .then((response) => {
-                //console.log(response.data);
+                console.log(response.data);
                 if (response.data.hasOwnProperty('result')) {
                   let newAddressInfo = defaultAddressInfo;
                   newAddressInfo.address = response.data.result.address;
                   this.newAddressInfo = newAddressInfo;
+                   localStorage.setItem(chainIdNumber(), newAddressInfo.address);
                   this.isFirst = false;
-                  this.getAddressList();
+                 // this.getAddressList();
+                }else{
+                this.$message({message: this.$t('newAddress.newAddress30')+response.data.error.message, type: 'error', duration: 1000});
                 }
               }).catch((err) => {
               console.log(err)

@@ -12,9 +12,9 @@
       <div class="card_long">
         <h5 class="card-title font18">
           {{$t('public.basicData')}}
-          <span class="font14 fr fred click" v-show="isCancel" @click="cancelContract">
+         <!-- <span class="font14 fr fred click" v-show="isCancel" @click="cancelContract">
             {{$t('contractInfo.contractInfo1')}}
-          </span>
+          </span> -->
         </h5>
         <ul>
           <li>{{$t('public.usableBalance')}}<label>{{contractInfo.balance}}<span
@@ -180,9 +180,9 @@
     },
     methods: {
 
-     // handleClick(tab, event) {
-       // console.log(tab, event);
-    //  },
+      handleClick(tab, event) {
+        console.log(tab.name);
+      },
 
       /**
        * 合约详情根据合约地址
@@ -191,7 +191,7 @@
       async contractInfoByAddress(address) {
         await this.$post('/', 'getContract', [address])
           .then((response) => {
-            //console.log(response);
+            console.log(response);
             if (response.hasOwnProperty("result")) {
               response.result.createTxHashs = superLong(response.result.createTxHash, 5);
               response.result.balance = timesDecimals(response.result.balance);

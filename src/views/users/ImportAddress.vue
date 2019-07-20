@@ -45,7 +45,7 @@
 <script>
   import BackBar from '@/components/BackBar'
   import Password from '@/components/PasswordBar'
-  import {chainID, defaultAddressInfo, localStorageByAddressInfo} from '@/api/util'
+  import {chainID, defaultAddressInfo,chainIdNumber, localStorageByAddressInfo} from '@/api/util'
   import {RUN_PATTERN, LOCALHOST_API_URL, PARAMETER} from '@/config.js'
   import axios from 'axios'
 
@@ -118,6 +118,7 @@
        * @param password
        **/
       passSubmit(password) {
+      console.log(this.importKeyForm.key);
         PARAMETER.method = 'importAccountByPriKey';
         PARAMETER.params = [chainID(), this.importKeyForm.key, password, true];
         axios.post(LOCALHOST_API_URL, PARAMETER)
@@ -126,7 +127,8 @@
             if (response.data.hasOwnProperty('result')) {
               let newImportAddressInfo = defaultAddressInfo;
               newImportAddressInfo.address = response.data.result.address;
-              localStorageByAddressInfo(newImportAddressInfo);
+              //localStorageByAddressInfo(newImportAddressInfo);
+               localStorage.setItem(chainIdNumber(), newImportAddressInfo.address);
               this.toUrl('address')
             }
           }).catch((err) => {
@@ -153,15 +155,18 @@
        */
       importWallet() {
         PARAMETER.method = 'importAccountByPriKey';
-        PARAMETER.params = [chainID(), this.keystoreInfo.key, this.keystoreInfo.pass, true];
+        PARAMETER.params = [chainID(), this.importKeyForm.key, this.importKeyForm.pass, true];
         axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
             //console.log(response.data);
             if (response.data.hasOwnProperty('result')) {
               let newImportAddressInfo = defaultAddressInfo;
               newImportAddressInfo.address = response.data.result.address;
-              localStorageByAddressInfo(newImportAddressInfo);
+              //localStorageByAddressInfo(newImportAddressInfo);
+               localStorage.setItem(chainIdNumber(), newImportAddressInfo.address);
               this.toUrl('address')
+            }else{
+                this.$message({message: this.$t('importAddress.importAddress18')+response.data.error.message, type: 'error', duration: 1000});
             }
           }).catch((err) => {
           console.log(err)

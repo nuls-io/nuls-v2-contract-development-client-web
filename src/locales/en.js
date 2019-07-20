@@ -625,23 +625,24 @@ const en = {
     "address11": "Confirm",
     "address12": "Sorry, the account balance is insufficient.",
     "address13": "Password error",
+    "address14": "Failed to get address list",
+    "address15": "Failed to remove address:",
     "address": "",
-
   },
 
   "newAddress": {
-    "newAddress0": "Create Wallet",
+    "newAddress0": "Create Account",
     "newAddress1": "Backup account",
     "newAddress2": "Set password",
     "newAddress3": "Backups",
-    "newAddress4": "Please set up a password for importing accounts, transferring accounts, participating in consensus and other important behavior verification.",
+    "newAddress4": "Please set up a password for importing accounts.",
     "newAddress5": "Please keep your wallet password carefully. NULS wallet does not store your password and can't help you find it. Please keep it in mind.",
     "newAddress6": "Password",
     "newAddress7": "Confirm password",
     "newAddress8": "Click Next and you've agreed.",
     "newAddress9": "user agreement",
     "newAddress10": "Next",
-    "newAddress11": "Import Wallet",
+    "newAddress11": "Import private key",
     "newAddress12": "Your account address",
     "newAddress13": "Don't lose it! NULS will not be able to help you retrieve the missing key",
     "newAddress14": "Don't share with others! If you use this file on malicious websites, your funds may be at risk of theft.",
@@ -660,6 +661,7 @@ const en = {
     "newAddress27": "File save completed, location:",
     "newAddress28": "Select the location where the keystore file is saved",
     "newAddress29": "Please choose a password-aware prompt",
+    "newAddress30": "Account creation failed:",
     "newAddress": "",
   },
 
@@ -682,14 +684,14 @@ const en = {
 
   "importAddress": {
     "importAddress0": "Create address",
-    "importAddress1": "Import Wallet",
+    "importAddress1": "Import private key",
     "importAddress2": "Keystore import",
     "importAddress3": "Key import",
     "importAddress4": "Select the keystore file",
     "importAddress5": "Please enter your private key:",
     "importAddress6": "Password",
     "importAddress7": "Confirm password",
-    "importAddress8": "Import Wallet",
+    "importAddress8": "Import private key",
     "importAddress9": "Private key cannot be empty",
     "importAddress10": "Please input a password",
     "importAddress11": "Please enter an 8-20-bit password composed of letters and numbers",
@@ -699,6 +701,7 @@ const en = {
     "importAddress15": "Keystore import failed, please restart and try again ",
     "importAddress16": "Please select the correct keystore file",
     "importAddress17": "Please select a keystore file to import",
+    "importAddress18": "Import private key fail:",
   },
 
   "setAlias": {

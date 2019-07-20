@@ -12,6 +12,7 @@
       </div>
       <div class="tool">
         <el-menu mode="horizontal" :default-active="navActive" @select="handleSelect">
+        <!--
           <el-submenu index="address" class="user" :disabled="addressList.length === 0">
             <template slot="title"><i class="iconfont iconzhanghu"></i></template>
             <el-menu-item v-for="item of addressList" :key="item.address" :index="item.address">
@@ -20,6 +21,7 @@
                     v-show="item.alias">{{item.alias}} | </span><span>{{item.balance}}</span>
             </el-menu-item>
           </el-submenu>
+         -->
           <el-submenu index="set">
             <template slot="title">{{$t('nav.set')}}</template>
             <el-menu-item index="address">{{$t('nav.addressList')}}</el-menu-item>
@@ -111,13 +113,22 @@
        * 获取账户列表
        */
       async getAddressList() {
+       console.log("---2---"+this.defaultAddress );
         this.addressList = await addressInfo();
-        if (this.addressList) {
+        console.log(this.addressList.length);
+        if (this.addressList.length>0) {
           for (let item  of this.addressList) {
             item.addresss = superLong(item.address, 8);
           }
-        }
         this.defaultAddress = localStorage.getItem(chainIdNumber());
+        }else{
+        localStorage.removeItem(chainIdNumber());
+        this.defaultAddress ='';
+        this.$router.push({
+              name: "newAddress",
+              query: {'address': ''}
+          })
+        }
       },
 
       /**

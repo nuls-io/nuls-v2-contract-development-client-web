@@ -54,7 +54,7 @@
           </div>
         </div>
       </el-tab-pane>
-      <el-tab-pane :label="$t('contract.contract10')" name="contractThird">
+      <el-tab-pane :label="$t('contract.contract10')" name="contractSecond">
         <Deploy :addressInfo="addressInfo">
         </Deploy>
       </el-tab-pane>
@@ -89,7 +89,7 @@
       this.addressInfo.address = localStorage.getItem(chainIdNumber());
     },
     mounted() {
-       console.log(this.addressInfo.address);
+       //console.log(this.addressInfo.address);
        if(this.addressInfo.address){
              this.getMyContractByAddress(this.addressInfo.address);
        }
@@ -114,12 +114,15 @@
        * @param tab
        **/
       handleClick(tab) {
-        console.log(tab.name);
+       // console.log(tab.name);
         if (tab.name === 'contractSecond') {
           this.searchContract = '';
           this.isCollection = false;
           this.contractInfo = {};
           this.modelData = [];
+          if(!this.addressInfo.address){
+             this.$message({message: this.$t('error.ac_0052'), type: 'error', duration: 1000});
+          }
         } else if (tab.name === 'contractFirst') {
           this.addressInfo.address = localStorage.getItem(chainIdNumber());
           if(this.addressInfo.address){
