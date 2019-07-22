@@ -113,7 +113,8 @@
       let validatePass = (rule, value, callback) => {
         let patrn = /^(?![\d]+$)(?![a-zA-Z]+$)(?![^\da-zA-Z]+$).{8,20}$/;
         if (value === '') {
-          callback(new Error(this.$t('newAddress.newAddress22')));
+          //callback(new Error(this.$t('newAddress.newAddress22')));
+            callback();
         } else if (!patrn.exec(value)) {
           callback(new Error(this.$t('newAddress.newAddress23')));
         } else {
@@ -125,7 +126,8 @@
       };
       let validatePassTwo = (rule, value, callback) => {
         if (value === '') {
-         callback(new Error(this.$t('newAddress.newAddress24')));
+         //callback(new Error(this.$t('newAddress.newAddress24')));
+           callback();
         } else if (value !== this.passwordForm.pass) {
           callback(new Error(this.$t('newAddress.newAddress25')));
         } else {

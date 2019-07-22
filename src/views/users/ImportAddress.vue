@@ -61,7 +61,8 @@
       let validatePass = (rule, value, callback) => {
         let patrn = /^(?![\d]+$)(?![a-zA-Z]+$)(?![^\da-zA-Z]+$).{8,20}$/;
         if (value === '') {
-          callback(new Error(this.$t('importAddress.importAddress10')));
+          //callback(new Error(this.$t('importAddress.importAddress10')));
+           callback();
         } else if (!patrn.exec(value)) {
           callback(new Error(this.$t('importAddress.importAddress11')));
         } else {
@@ -73,7 +74,8 @@
       };
       let validateCheckPass = (rule, value, callback) => {
         if (value === '') {
-          callback(new Error(this.$t('importAddress.importAddress12')));
+         // callback(new Error(this.$t('importAddress.importAddress12')));
+           callback();
         } else if (value !== this.importKeyForm.pass) {
           callback(new Error(this.$t('importAddress.importAddress13')));
         } else {
@@ -171,7 +173,6 @@
           }).catch((err) => {
           console.log(err)
         });
-        this.toUrl('address')
       },
 
       /**
