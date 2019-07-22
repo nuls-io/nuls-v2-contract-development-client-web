@@ -378,7 +378,7 @@
           .then((response) => {
           console.log(response);
           if (response.data.hasOwnProperty('result')) {
-          this.callResult="合约调用成功，交易数据HASH: " + response.data.result.txHash;
+            this.callResult="合约调用成功，交易数据HASH: " + response.data.result.txHash;
            }else{
            this.$message({message: "合约调用失败: " + response.data.error.message, type: 'error', duration: 2000});
            }
@@ -393,9 +393,6 @@
        **/
       async confirmCall(password) {
       let newArgs = [];
-      console.log("confirmCall");
-      console.log(password);
-      console.log(this.callForm.parameterList.length);
       if (this.callForm.parameterList.length > 0) {
           let newArgs = getArgs(this.callForm.parameterList);
           if (newArgs.allParameter) {

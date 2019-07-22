@@ -25,6 +25,9 @@
               <template slot-scope="scope"><span>{{ $t('contractStatus.'+scope.row.status) }}</span></template>
             </el-table-column>
             <el-table-column prop="createTime" :label="$t('public.time')" align="center">
+              <template slot-scope="scope">
+                     <span>{{scope.row.createTime |convertTime}}</span>
+               </template>
             </el-table-column>
             <el-table-column :label="$t('public.operation')" align="center">
               <template slot-scope="scope">
@@ -64,7 +67,7 @@
 
 <script>
   //import moment from 'moment'
-  import {chainIdNumber,connectToExplorer} from '@/api/util'
+  import {chainIdNumber,connectToExplorer,timestampToTime} from '@/api/util'
   import Deploy from './Deploy'
 
   export default {
@@ -96,6 +99,11 @@
       setInterval(() => {
         this.defaultAddress = localStorage.getItem(chainIdNumber());
       }, 500);
+    },
+    filters :{
+        convertTime(value){
+            return timestampToTime(value);
+        }
     },
     components: {
       Deploy,

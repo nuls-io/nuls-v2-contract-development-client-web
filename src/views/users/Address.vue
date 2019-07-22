@@ -90,7 +90,6 @@
       Password,
     },
     created() {
-    console.log("address-created");
      this.defaultAddress = localStorage.getItem(chainIdNumber());
       this.getAddressList();
     },
@@ -102,13 +101,10 @@
        * 获取账户列表
        */
       async getAddressList() {
-      console.log("address-getAddressList pageIndex :"+this.pageIndex);
-      console.log("address-getAddressList pageSize:"+this.pageSize);
         await this.$localhostPost('', 'getAccountList', [this.pageIndex, this.pageSize])
           .then((response) => {
             if (response.hasOwnProperty("result")) {
                 this.addressList = response.result.list;
-                console.log(this.addressList);
                //如果没有账户跳转到创建账户界面
               if (this.addressList.length === 0) {
                      this.$router.push({
@@ -204,7 +200,6 @@
         PARAMETER.params = [chainID(), this.selectAddressInfo.address, password];
         axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            //console.log(response.data);
             if (response.data.hasOwnProperty('result')) {
               if(this.selectAddressInfo.address== localStorage.getItem(chainIdNumber())){
                  localStorage.removeItem(chainIdNumber());

@@ -120,12 +120,10 @@
        * @param password
        **/
       passSubmit(password) {
-      console.log(this.importKeyForm.key);
         PARAMETER.method = 'importAccountByPriKey';
         PARAMETER.params = [chainID(), this.importKeyForm.key, password, true];
         axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            //console.log(response.data);
             if (response.data.hasOwnProperty('result')) {
               let newImportAddressInfo = defaultAddressInfo;
               newImportAddressInfo.address = response.data.result.address;
@@ -159,7 +157,6 @@
         PARAMETER.params = [chainID(), this.importKeyForm.key, this.importKeyForm.pass, true];
         axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            //console.log(response.data);
             if (response.data.hasOwnProperty('result')) {
               let newImportAddressInfo = defaultAddressInfo;
               newImportAddressInfo.address = response.data.result.address;

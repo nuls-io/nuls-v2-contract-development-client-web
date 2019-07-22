@@ -182,7 +182,6 @@
        * @param formName
        */
       submitPasswordForm(formName) {
-      console.log(this.passwordForm.pass);
         this.$refs[formName].validate((valid) => {
           if (valid) {
             PARAMETER.method = 'createAccount';
@@ -245,10 +244,11 @@
           PARAMETER.params = [chainID(), this.newAddressInfo.address, password];
           axios.post(LOCALHOST_API_URL, PARAMETER)
             .then((response) => {
-              //console.log(response.data.result);
               if (response.data.hasOwnProperty('result')) {
                 this.newAddressInfo.pri = response.data.result.privateKey;
                 this.keyDialog = true;
+              }else{
+                this.$message({message: this.$t('newAddress.newAddress31') + response.data.error.message, type: 'error', duration: 1000});
               }
             }).catch((err) => {
             console.log(err);

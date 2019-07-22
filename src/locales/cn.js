@@ -642,6 +642,7 @@ const cn = {
     "newAddress28": "请选择keystore文件的保存位置",
     "newAddress29": "请选择知晓密码提示",
     "newAddress30": "创建账户失败：",
+    "newAddress31": "导出私钥失败：",
     "newAddress": "",
 
   },

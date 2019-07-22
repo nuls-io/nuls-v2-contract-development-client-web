@@ -268,7 +268,6 @@
        **/
       async testSubmitForm(formName) {
         let that = this;
-         console.log(this.nodeServiceForm.urls);
         this.$refs[formName].validate((valid) => {
           if (valid) {
             that.nodeServiceDialogLoading = true;

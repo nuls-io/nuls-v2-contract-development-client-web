@@ -40,7 +40,6 @@ export function post(url, methodName, data = []) {
  * @returns {Promise}
  */
 export function localhostPost(url, methodName, data = []) {
-  console.log(methodName);
   axios.defaults.baseURL = config.LOCALHOST_API_URL;
   return new Promise((resolve, reject) => {
     data.unshift(chainID());

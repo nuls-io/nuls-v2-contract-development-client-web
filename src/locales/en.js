@@ -662,6 +662,7 @@ const en = {
     "newAddress28": "Select the location where the keystore file is saved",
     "newAddress29": "Please choose a password-aware prompt",
     "newAddress30": "Account creation failed:",
+    "newAddress31": "Export private key failed:",
     "newAddress": "",
   },
 
