@@ -45,7 +45,7 @@
 <script>
   import BackBar from '@/components/BackBar'
   import Password from '@/components/PasswordBar'
-  import {chainID, defaultAddressInfo,chainIdNumber, localStorageByAddressInfo} from '@/api/util'
+  import {chainID, defaultAddressInfo,chainIdNumber} from '@/api/util'
   import {RUN_PATTERN, LOCALHOST_API_URL, PARAMETER} from '@/config.js'
   import axios from 'axios'
 
@@ -129,7 +129,6 @@
             if (response.data.hasOwnProperty('result')) {
               let newImportAddressInfo = defaultAddressInfo;
               newImportAddressInfo.address = response.data.result.address;
-              //localStorageByAddressInfo(newImportAddressInfo);
                localStorage.setItem(chainIdNumber(), newImportAddressInfo.address);
               this.toUrl('address')
             }
@@ -164,7 +163,6 @@
             if (response.data.hasOwnProperty('result')) {
               let newImportAddressInfo = defaultAddressInfo;
               newImportAddressInfo.address = response.data.result.address;
-              //localStorageByAddressInfo(newImportAddressInfo);
                localStorage.setItem(chainIdNumber(), newImportAddressInfo.address);
               this.toUrl('address')
             }else{

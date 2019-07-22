@@ -197,8 +197,8 @@
               response.result.balance = timesDecimals(response.result.balance);
               this.contractInfo = response.result;
               this.modelData = (function () {
-                                    var methodsFilter=[];
-                                  var methods =response.result.methods;
+                                var methodsFilter=[];
+                               var methods =response.result.methods;
                                      for(var i=0;i<methods.length;i++){
                                         if(methods[i].name!='<init>' && methods[i].name!='_payable'){
                                             methodsFilter.push(methods[i]);
