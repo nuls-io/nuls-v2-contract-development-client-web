@@ -88,7 +88,7 @@
   } from '@/api/requestData'
   import Password from '@/components/PasswordBar'
   import {getArgs, chainID} from '@/api/util'
-  import {LOCALHOST_API_URL, PARAMETER,DEFAULT_JAR_FILE_PATH} from '@/config.js'
+  import {LOCALHOST_API_URL, PARAMETER} from '@/config.js'
   import axios from 'axios'
 
   export default {
@@ -465,7 +465,7 @@
 
       getDefaultContract(){
             PARAMETER.method = 'getDefaultContractCode';
-            PARAMETER.params = [DEFAULT_JAR_FILE_PATH];
+            PARAMETER.params=[];
             axios.post(LOCALHOST_API_URL,PARAMETER)
                .then((response) => {
                  if (response.data.hasOwnProperty("result")) {
