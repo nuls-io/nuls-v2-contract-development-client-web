@@ -113,9 +113,7 @@
        * 获取账户列表
        */
       async getAddressList() {
-       console.log("---2---"+this.defaultAddress );
         this.addressList = await addressInfo();
-        console.log(this.addressList.length);
         if (this.addressList.length>0) {
           for (let item  of this.addressList) {
             item.addresss = superLong(item.address, 8);

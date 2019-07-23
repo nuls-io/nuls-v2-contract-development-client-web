@@ -434,21 +434,20 @@
         let obj = document.getElementById("fileId");
         obj.click();
         obj.onchange = function () {
+        console.log(obj.value);
+        console.log(this.value);
           if (this.value !== '') {
             let file = obj.files[0];
+              console.log(file);
             _this.fileName = file.name;
             //获取文件流
             let reader = new FileReader();
             reader.readAsDataURL(file);
-           // console.log(reader.result);
             reader.onload = (() => {
              PARAMETER.method = 'uploadContractJar';
              PARAMETER.params = [chainID(), reader.result];
-             console.log(reader.result);
               axios.post(LOCALHOST_API_URL,PARAMETER)
                 .then((response) => {
-              //    console.log("respone: "+response);
-              //    console.log(response);
                   if (response.data.hasOwnProperty("result")) {
                     _this.deployForm.hex = response.data.result.code;
                     _this.getParameter();
