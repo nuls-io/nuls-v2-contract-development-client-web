@@ -188,14 +188,12 @@
             PARAMETER.params = [chainID(), this.passwordForm.pass];
             axios.post(LOCALHOST_API_URL, PARAMETER)
               .then((response) => {
-                console.log(response.data);
                 if (response.data.hasOwnProperty('result')) {
                   let newAddressInfo = defaultAddressInfo;
                   newAddressInfo.address = response.data.result.address;
                   this.newAddressInfo = newAddressInfo;
                    localStorage.setItem(chainIdNumber(), newAddressInfo.address);
                   this.isFirst = false;
-                 // this.getAddressList();
                 }else{
                 this.$message({message: this.$t('newAddress.newAddress30')+response.data.error.message, type: 'error', duration: 1000});
                 }

@@ -66,7 +66,6 @@
 </template>
 
 <script>
-  //import moment from 'moment'
   import {chainIdNumber,connectToExplorer,timestampToTime} from '@/api/util'
   import Deploy from './Deploy'
 

@@ -61,6 +61,7 @@
     components: {},
     created() {
       this.getAddressList();
+
     },
     mounted() {
       /* setInterval(() => {
@@ -118,7 +119,12 @@
           for (let item  of this.addressList) {
             item.addresss = superLong(item.address, 8);
           }
-        this.defaultAddress = localStorage.getItem(chainIdNumber());
+           this.defaultAddress = localStorage.getItem(chainIdNumber());
+         if(this.defaultAddress==''){
+           this.$router.push({
+                 name: "address"
+           })
+        }
         }else{
         localStorage.removeItem(chainIdNumber());
         this.defaultAddress ='';

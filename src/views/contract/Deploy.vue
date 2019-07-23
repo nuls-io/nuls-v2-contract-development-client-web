@@ -27,13 +27,15 @@
             <p class="font14">{{$t('deploy.deploy3')}}</p>
             <p class="font12" v-show="fileName">{{$t('deploy.deploy4')}}:{{fileName}}</p>
           </div>
+          <div class="parameter" v-if="autoLoad==='1'">已经自动读取当前开发的合约代码，若需另外部署合约，请自行上传</div>
         </div>
+
         <div class="parameter" v-if="deployForm.parameterList">
           <el-form-item v-for="(domain, index) in deployForm.parameterList" :label="domain.name" :key="domain.name"
                         :prop="'parameterList.' + index + '.value'"
                         :rules="{required: domain.required,message:domain.name+$t('call.call2'), trigger: 'blur'}"
           >
-            <el-input v-model.trim="domain.value" @change="changeParameter">
+            <el-input v-model.trim="domain.value" @change="changeParameter(tipSuccess)">
             </el-input>
           </el-form-item>
         </div>
@@ -86,7 +88,7 @@
   } from '@/api/requestData'
   import Password from '@/components/PasswordBar'
   import {getArgs, chainID} from '@/api/util'
-  import {LOCALHOST_API_URL, PARAMETER} from '@/config.js'
+  import {LOCALHOST_API_URL, PARAMETER,DEFAULT_JAR_FILE_PATH} from '@/config.js'
   import axios from 'axios'
 
   export default {
@@ -105,6 +107,8 @@
       return {
         //选择部署
         resource: '1',
+        //自动加载jar包
+        autoLoad:'0',
         //部署表单
         deployForm: {
           alias: '',
@@ -138,15 +142,16 @@
       };
     },
     props: {
-      addressInfo: Object
+      addressInfo: Object,
     },
     components: {
       Password,
     },
     created() {
+      this.autoLoad='0';
       this.createAddress = this.addressInfo.address;
-      //console.log(nuls.verifyAddress(this.addressInfo.address));
       this.getBalanceByAddress(nuls.verifyAddress(this.addressInfo.address).chainId, 1, this.createAddress);
+      this.getDefaultContract();
     },
     mounted() {
       //this.getTxInfoByHash(this.hash);
@@ -174,6 +179,7 @@
        */
       changeRadio(e) {
         this.resource = e;
+        this.autoLoad='0';
         this.fileName = '';
         this.deployForm = {
           alias: '',
@@ -191,14 +197,21 @@
        **/
       changeAlias() {
         if (this.deployForm.hex) {
-          this.changeParameter();
+          this.changeParameter(this.tipSuccess);
         }
       },
 
       /**
+       * 提示合约测试通过
+       **/
+     tipSuccess(){
+           this.$message({message: this.$t('deploy.deploy16'), type: 'success', duration: 2000});
+        },
+
+      /**
        * hex码 有值获取参数
        */
-      async getParameter() {
+        async getParameter() {
         if (this.deployForm.hex.length > 500) {
           this.deployLoading = true;
         //  console.log("hex.length="+this.deployForm.hex.length);
@@ -220,10 +233,10 @@
       /**
        * 判断所有必填参数是否有值
        **/
-      changeParameter() {
+      changeParameter(callback) {
         let newArgs = getArgs(this.deployForm.parameterList);
         if (newArgs.allParameter) {
-          this.validateContractCreate(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args);
+          this.validateContractCreate(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args,callback);
           this.deployForm.price = sdk.CONTRACT_MINIMUM_PRICE;
         }
       },
@@ -236,16 +249,13 @@
        * @param contractCode
        * @param args
        */
-      async validateContractCreate(createAddress, gasLimit, price, contractCode, args) {
+      async validateContractCreate(createAddress, gasLimit, price, contractCode, args,callback) {
         PARAMETER.method = 'validateContractCreate';
         PARAMETER.params = [chainID(), createAddress, gasLimit, price, contractCode, args];
-        console.log(PARAMETER.params);
         return  axios.post(LOCALHOST_API_URL,PARAMETER)
           .then((response) => {
-            console.log("validateContractCreate response: "+response);
-            console.log(response);
             if (response.data.hasOwnProperty("result")) {
-              this.imputedContractCreateGas(createAddress, contractCode, args);
+              this.imputedContractCreateGas(createAddress, contractCode, args,callback);
             } else {
               this.$message({message: this.$t('deploy.deploy11') + response.data.error.message, type: 'error', duration: 2000});
             }
@@ -262,16 +272,14 @@
        * @param args
        * @param alias
        */
-      async imputedContractCreateGas(createAddress, contractCode, args) {
+      async imputedContractCreateGas(createAddress, contractCode, args,callback) {
         PARAMETER.method = 'imputedContractCreateGas';
         PARAMETER.params = [chainID(),createAddress, contractCode, args];
         return axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            console.log("imputedContractCreateGas response");
-              console.log(response);
             if (response.data.hasOwnProperty("result")) {
               this.deployForm.gas = response.data.result.gasLimit;
-              this.makeCreateData(response.data.result.gasLimit, createAddress, contractCode, args, this.deployForm.alias);
+              this.makeCreateData(response.data.result.gasLimit, createAddress, contractCode, args, this.deployForm.alias,callback);
             } else {
               this.$message({message: this.$t('deploy.deploy13') + response.data.error.message, type: 'error', duration: 2000});
             }
@@ -305,7 +313,7 @@
        * @param args
        * @param alias
        */
-      async makeCreateData(gasLimit, createAddress, contractCode, args, alias) {
+      async makeCreateData(gasLimit, createAddress, contractCode, args, alias,callback) {
         let contractCreate = {};
         contractCreate.chainId = chainID();
         contractCreate.sender = createAddress;
@@ -324,8 +332,10 @@
         if (!contractCreate.chainId || !contractCreate.contractAddress || !contractCreate.contractCode || !contractCreate.gasLimit || !contractCreate.price || !contractCreate.sender) {
           this.$message({message: this.$t('deploy.deploy15'), type: 'error', duration: 2000});
         } else {
-          this.contractCreateTxData = contractCreate;
-           this.$message({message: this.$t('deploy.deploy16'), type: 'success', duration: 2000});
+            this.contractCreateTxData = contractCreate;
+            if(callback instanceof Function){
+                callback();
+            }
         }
       },
 
@@ -359,8 +369,7 @@
             let newArgs = getArgs(this.deployForm.parameterList);
              console.log(newArgs);
             if (newArgs.allParameter) {
-              this.validateContractCreate(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args);
-
+              this.validateContractCreate(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args,this.tipSuccess);
             }
           } else {
             return false;
@@ -368,13 +377,6 @@
         });
       },
 
-      //测试部署合约
-      async testDeploy(createAddress, gasLimit, price, contractCode, args) {
-      console.log(createAddress);
-      console.log(args);
-        console.log(gasLimit);
-       this.validateContractCreate(createAddress, gasLimit, price, this.deployForm.hex, args);
-      },
 
       /**
        * 部署合约
@@ -430,15 +432,14 @@
        * @returns {Promise<void>}
        */
       async uploadJar() {
+
         let _this = this;
+        _this.autoLoad='0';
         let obj = document.getElementById("fileId");
         obj.click();
         obj.onchange = function () {
-        console.log(obj.value);
-        console.log(this.value);
           if (this.value !== '') {
             let file = obj.files[0];
-              console.log(file);
             _this.fileName = file.name;
             //获取文件流
             let reader = new FileReader();
@@ -460,6 +461,26 @@
             });
           }
         }
+      },
+
+      getDefaultContract(){
+            PARAMETER.method = 'getDefaultContractCode';
+            PARAMETER.params = [DEFAULT_JAR_FILE_PATH];
+            axios.post(LOCALHOST_API_URL,PARAMETER)
+               .then((response) => {
+                 if (response.data.hasOwnProperty("result")) {
+                    if(response.data.result.haveJarFile){
+                        this.autoLoad='1';
+                       this.deployForm.hex = response.data.result.codeHex;
+                       this.fileName= response.data.result.fileName;
+                       this.getParameter();
+                    }
+                 } else {
+                   this.$message({message:response.data.error.message, type: 'error', duration: 2000});
+                 }
+               }).catch((err) => {
+               this.$message({message: err, type: 'error', duration: 2000});
+             })
       },
     }
   }

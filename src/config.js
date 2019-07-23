@@ -32,3 +32,6 @@ export const defaultData = [
 export const defaultUrl ={name: 'Official',chainId:2,assetId:1,decimals:8,chainName:'tNULS', urls: 'https://beta.wallet.nuls.io/api', delay: '10ms', selection: true, isDelete: false};
 //默认浏览器地址（跳转地址）
 export const explorerUrl = 'http://beta.nulscan.io/';
+
+//测试使用，表示智能合约打包后的jar默认存放路径
+export let DEFAULT_JAR_FILE_PATH='D:\\BlockChain-nuls\\github_repositories\\nuls-v2-develop\\module\\nuls-smart-contract\\src\\test\\resources';
