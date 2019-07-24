@@ -73,7 +73,7 @@
     data() {
       return {
         addressInfo: {},//地址信息
-        contractActive: 'contractFirst',
+        contractActive: 'contractSecond',
         //我的合约
         myContractData: [],
         pageIndex: 1, //页码
