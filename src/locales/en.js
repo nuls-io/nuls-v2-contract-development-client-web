@@ -635,7 +635,7 @@ const en = {
     "newAddress1": "Backup account",
     "newAddress2": "Set password",
     "newAddress3": "Backups",
-    "newAddress4": "Please set up a password for importing accounts.",
+    "newAddress4": "This account is used to test the deployment and invocation of the smart contracts, allowing no password to be set.",
     "newAddress5": "Please keep your wallet password carefully. NULS wallet does not store your password and can't help you find it. Please keep it in mind.",
     "newAddress6": "Password",
     "newAddress7": "Confirm password",
@@ -772,6 +772,7 @@ const en = {
     "deploy19": "Please enter the contract name.",
     "deploy20": "Contract name (only lowercase letters, numbers, underscores are allowed (underscores cannot be at both ends)",
     "deploy21": "Contract Name",
+    "deploy22":"Start deploy contract",
     "deploy": "deploy",
   },
 

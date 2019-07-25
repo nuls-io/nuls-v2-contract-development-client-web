@@ -179,17 +179,6 @@
        */
       changeRadio(e) {
         this.resource = e;
-        this.autoLoad='0';
-        this.fileName = '';
-        this.deployForm = {
-          alias: '',
-          hex: '',
-          parameterList: [],
-          senior: false,
-          gas: '',
-          price: '',
-          addtion: '',
-        };
       },
 
       /**
@@ -197,7 +186,7 @@
        **/
       changeAlias() {
         if (this.deployForm.hex) {
-          this.changeParameter(this.tipSuccess);
+          this.changeParameter();
         }
       },
 
@@ -227,6 +216,17 @@
           } else {
             this.$message({message: this.$t('deploy.deploy10') + parameter.data.error, type: 'error', duration: 2000});
           }
+        }else{
+            this.fileName = '';
+            this.deployForm = {
+                 alias: '',
+                  hex: '',
+                  parameterList: [],
+                  senior: false,
+                  gas: '',
+                  price: '',
+                  addtion: '',
+              };
         }
       },
 

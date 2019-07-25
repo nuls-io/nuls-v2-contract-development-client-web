@@ -37,7 +37,7 @@
       <div class="w630" v-show="isFirst">
         <div class="tip bg-gray">
           <p><i></i>{{$t('newAddress.newAddress4')}}</p>
-          <p><i></i>{{$t('newAddress.newAddress5')}}</p>
+          <!-- <p><i></i>{{$t('newAddress.newAddress5')}}</p> -->
         </div>
         <div class="cb"></div>
         <el-form :model="passwordForm" status-icon :rules="passwordRules" ref="passwordForm" class="mb_20">
@@ -78,6 +78,8 @@
           </el-button>
           <el-button type="text" @click="backKey">{{$t('newAddress.newAddress17')}}</el-button>
           <el-button type="info" @click="goWallet" v-show="false">{{$t('newAddress.newAddress18')}}</el-button>
+
+          <el-button type="text" @click="toUrl('contract')">{{$t('deploy.deploy22')}}</el-button>
         </div>
       </div>
 

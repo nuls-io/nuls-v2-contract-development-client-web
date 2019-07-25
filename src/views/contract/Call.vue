@@ -41,7 +41,7 @@
       </el-form-item>
     </el-form>
     <div class="cb"></div>
-    <div class="w630 bg-gray result" v-if="callResult">
+    <div class="w630 bg-gray wordwrap result" v-if="callResult">
       {{callResult}}
     </div>
     <Password ref="password" @passwordSubmit="confirmCall">

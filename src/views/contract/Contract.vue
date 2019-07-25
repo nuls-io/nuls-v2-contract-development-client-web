@@ -89,15 +89,19 @@
     },
     created() {
       this.addressInfo.address = localStorage.getItem(chainIdNumber());
+      this.defaultAddress = localStorage.getItem(chainIdNumber());
     },
     mounted() {
        //console.log(this.addressInfo.address);
-       if(this.addressInfo.address){
-             this.getMyContractByAddress(this.addressInfo.address);
-       }
+     //  if(this.addressInfo.address){
+     //        this.getMyContractByAddress(this.addressInfo.address);
+    //   }
       setInterval(() => {
         this.defaultAddress = localStorage.getItem(chainIdNumber());
-      }, 500);
+        if(this.addressInfo.address){
+               this.getMyContractByAddress(this.addressInfo.address);
+        };
+      }, 5000);
     },
     filters :{
         convertTime(value){
