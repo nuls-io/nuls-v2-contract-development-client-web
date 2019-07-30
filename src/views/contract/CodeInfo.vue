@@ -120,7 +120,6 @@
       async uploadFiles(contractsAddress, jobSpecFile) {
         this.$post('/', 'validateContractCode', [contractsAddress, jobSpecFile])
           .then((response) => {
-            //console.log(response);
             if (response.result) {
               this.ifCertified =true;
               this.getContractCodeTree(contractsAddress);
@@ -152,7 +151,6 @@
       async getContractCodeTree(contractsAddress) {
         this.$post('/', 'getContractCodeTree', [contractsAddress])
           .then((response) => {
-            //console.log(response);
             if (response.result) {
               this.codeTress.push(response.result.root);
             }
@@ -167,7 +165,6 @@
       async getContractCode(contractsAddress,path) {
         this.$post('/', 'getContractCode', [contractsAddress,path])
           .then((response) => {
-            //console.log(response);
             if (response.hasOwnProperty("result")) {
               this.codeInfo=response.result;
             }else {
@@ -183,9 +180,7 @@
        * @param data
        */
       handleNodeClick(data) {
-        //console.log(data);
         if(!data.dir){
-          //console.log(data.path);
           this.getContractCode(this.contractsAddress,data.path);
         }
       },

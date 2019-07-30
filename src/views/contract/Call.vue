@@ -94,6 +94,7 @@
       };
 
       return {
+        first:0,//首次进入
         addressInfo: {},//地址信息
         balanceInfo: {},//账户余额信息
         //调用接口form
@@ -138,7 +139,6 @@
     },
     created() {
       this.addressInfo.address = localStorage.getItem(chainIdNumber());
-      this.callForm.modelData = this.modelList;
       this.getBalanceByAddress(chainID(), 1, this.addressInfo.address);
     },
     mounted() {
@@ -168,16 +168,13 @@
           if (itme.name === val) {
             this.selectionData = itme;
             this.callForm.parameterList = itme.params;
-            if (itme.view) {
-              this.callForm.gas = 0;
-              //this.callForm.price = 0;
-              this.callForm.values = 0;
-            }else{
-                if(itme.params.length > 0 ){
+            this.callForm.values = 0;
+            this.callForm.gas = 0;
+            this.callForm.price = 0;
+            if (!itme.view) {
+               if(!itme.payable){
                   this.chainMethodCall();
-                }else{
-                this.callForm.price = sdk.CONTRACT_MINIMUM_PRICE;
-                }
+               }
             }
           }
         }
@@ -229,7 +226,6 @@
         PARAMETER.params =[chainID(),contractAddress, methodName, methodDesc, args];
         axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            //console.log(response);
             if (response.data.hasOwnProperty("result")) {
               this.callResult = response.data.result.methodReturn;
             } else {
@@ -244,16 +240,16 @@
       /**
        * 上链方法调用
        */
-      chainMethodCall() {
+      chainMethodCall(callback) {
         let newArgs = [];
         this.callForm.price = sdk.CONTRACT_MINIMUM_PRICE;
         if (this.callForm.parameterList.length > 0) { //有参数
           newArgs = getArgs(this.callForm.parameterList, this.decimals);
           if (newArgs.allParameter) {
-            this.validateContractCall(this.addressInfo.address, Number(Times(this.callForm.values, 100000000)), sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs.args);
+            this.validateContractCall(this.addressInfo.address, Number(Times(this.callForm.values, 100000000)), sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs.args,callback);
           }
         } else { //没参数
-          this.validateContractCall(this.addressInfo.address, Number(Times(this.callForm.values, 100000000)), sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs);
+          this.validateContractCall(this.addressInfo.address, Number(Times(this.callForm.values, 100000000)), sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs,callback);
         }
       },
 
@@ -268,17 +264,13 @@
        * @param methodDesc
        * @param args
        */
-      async validateContractCall(sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args) {
+      async validateContractCall(sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args,callback) {
      // PARAMETER.method = 'validateContractCall';
      // PARAMETER.params =[chainID(),sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args];
-     console.log('value: '+value);
       return await post('/','validateContractCall',[sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args])
           .then((response) => {
-          console.log('validateContractCall');
-            console.log(response);
             if (response.result.success) {
-              //return {success: true, data: response.result};
-              this.imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args);
+              this.imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args,callback);
             } else {
               this.$message({message: this.$t('call.call6') + response.result.msg, type: 'error', duration: 2000});
             }
@@ -297,14 +289,9 @@
        * @param methodDesc
        * @param args
        */
-      async imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args) {
-       // PARAMETER.method = 'imputedContractCallGas';
-       // PARAMETER.params = [chainID(),sender, value, contractAddress, methodName, methodDesc, args];
-       // return axios.post(LOCALHOST_API_URL, PARAMETER)
+      async imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args,callback) {
          return await post('/','imputedContractCallGas',[sender, value, contractAddress, methodName, methodDesc, args])
           .then((response) => {
-          console.log("imputedContractCallGas");
-          console.log(response);
             if (response.hasOwnProperty("result")) {
               this.callForm.gas = response.result.gasLimit;
               let contractConstructorArgsTypes = this.getContractMethodArgsTypes(contractAddress, methodName);
@@ -320,6 +307,9 @@
                 methodDesc: methodDesc,
                 args: newArgs
               };
+              if(callback instanceof Function){
+                callback();
+              }
             } else {
               this.$message({message: this.$t('call.call4') + response, type: 'error', duration: 2000});
             }
@@ -358,7 +348,6 @@
        **/
       getBalanceByAddress(assetChainId, assetId, address) {
         getNulsBalance(assetChainId, assetId, address).then((response) => {
-          //console.log(response);
           if (response.success) {
             this.balanceInfo = response.data;
           } else {
@@ -373,10 +362,8 @@
       async callContract(assetChainId,assetId, sender,password, contractAddress, value, methodName, methodDesc, args, gasLimit, price,remark){
         PARAMETER.method = 'callContract';
         PARAMETER.params = [chainID(), assetChainId,assetId, sender,password, contractAddress, value, methodName, methodDesc, args, gasLimit, price,remark];
-        console.log(methodName);
         axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-          console.log(response);
           if (response.data.hasOwnProperty('result')) {
             this.callResult="合约调用成功，交易数据HASH: " + response.data.result.txHash;
            }else{

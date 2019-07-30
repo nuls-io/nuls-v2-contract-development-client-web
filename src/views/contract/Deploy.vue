@@ -203,11 +203,9 @@
         async getParameter() {
         if (this.deployForm.hex.length > 500) {
           this.deployLoading = true;
-        //  console.log("hex.length="+this.deployForm.hex.length);
           let parameter = await getContractConstructor(this.deployForm.hex);
           if (parameter.success) {
             this.deployLoading = false;
-           // console.log(parameter.data);
             if (parameter.data.length !== 0) {
               this.deployForm.parameterList = parameter.data
             } else {
@@ -347,7 +345,6 @@
        **/
       getBalanceByAddress(assetChainId, assetId, address) {
         getNulsBalance(assetChainId, assetId, address).then((response) => {
-          //console.log(response);
           if (response.success) {
             this.balanceInfo = response.data;
           } else {
@@ -365,9 +362,7 @@
       submitTestDeploy(formName) {
         this.$refs[formName].validate((valid) => {
           if (valid) {
-          console.log(formName);
             let newArgs = getArgs(this.deployForm.parameterList);
-             console.log(newArgs);
             if (newArgs.allParameter) {
               this.validateContractCreate(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args,this.tipSuccess);
             }
@@ -404,20 +399,10 @@
           PARAMETER.params = [chainID(), 2, 1, this.addressInfo.address, password, this.deployForm.hex, this.deployForm.alias, newArgs.args, this.deployForm.gas, this.deployForm.price, this.deployForm.addtion];
            axios.post(LOCALHOST_API_URL, PARAMETER)
             .then((response) => {
-            console.log("createContract response:");
-              console.log(response.data);
               if (response.data.hasOwnProperty('result')) {
                 this.$message({message: "合约部署成功，合约地址: " + response.data.result.contractAddress, type: 'success', duration: 2000});
-                 this.fileName = '';
-                 this.deployForm = {
-                              alias: '',
-                              hex: '',
-                              parameterList: [],
-                              senior: false,
-                              gas: '',
-                              price: '',
-                              addtion: '',
-                            };
+                this.getDefaultContract();
+
               }else{
               this.$message({message: "合约部署失败: " + response.data.error.message, type: 'error', duration: 2000});
               }
@@ -432,7 +417,6 @@
        * @returns {Promise<void>}
        */
       async uploadJar() {
-
         let _this = this;
         _this.autoLoad='0';
         let obj = document.getElementById("fileId");
@@ -470,8 +454,12 @@
                .then((response) => {
                  if (response.data.hasOwnProperty("result")) {
                     if(response.data.result.haveJarFile){
-                        this.autoLoad='1';
+                       this.autoLoad='1';
                        this.deployForm.hex = response.data.result.codeHex;
+                       this.deployForm.alias='';
+                       this.deployForm.gas='';
+                       this.deployForm.price='';
+                       this.deployForm.addtion='';
                        this.fileName= response.data.result.fileName;
                        this.getParameter();
                     }

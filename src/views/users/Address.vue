@@ -245,7 +245,6 @@
        * @param param
        */
       toUrl(name, param) {
-        //console.log(name)
         this.$router.push({
           name: name,
           query: {'address': param}

@@ -206,7 +206,6 @@
           const params = {jsonrpc: "2.0", method: "getChainInfo", "params": [], "id": 5898};
           await axios.post(item.urls, params)
             .then(function (response) {
-              //console.log(response);
               if (response.data.hasOwnProperty("result")) {
                 endTime = (new Date()).valueOf();
                 item.delay = endTime - startTime;
@@ -224,7 +223,6 @@
               item.state = 0;
               console.log(error);
             });
-          //console.log(item);
           if (item.selection) {
             isUrl = false;
             localStorage.setItem("urls", JSON.stringify(item));
@@ -274,14 +272,11 @@
             const params = {jsonrpc: "2.0", method: "getChainInfo", "params": [], "id": 5898};
             axios.post(this.nodeServiceForm.urls, params)
               .then(function (response) {
-                //console.log(response.data);
                 if (response.data.hasOwnProperty("result")) {
                   that.testInfo.state = 1;
                   that.testInfo.result = response.data.result;
-                         console.log(response.data.result);
                   that.nodeServiceDialogLoading = false;
                 } else {
-                console.log( response.data.error.message);
                   that.testInfo.state = 2;
                   that.testInfo.result = response.data.error.message;
                   that.nodeServiceDialogLoading = false;
@@ -289,7 +284,6 @@
               })
               .catch(function (error) {
                 console.log(error.message);
-                console.log(that.testInfo.success);
                 that.testInfo.state = 300000;
                 that.testInfo.result = error.message;
                 console.log("getBestBlockHeader:" + error);

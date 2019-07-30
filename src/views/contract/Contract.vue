@@ -92,10 +92,9 @@
       this.defaultAddress = localStorage.getItem(chainIdNumber());
     },
     mounted() {
-       //console.log(this.addressInfo.address);
-     //  if(this.addressInfo.address){
-     //        this.getMyContractByAddress(this.addressInfo.address);
-    //   }
+       if(this.addressInfo.address){
+             this.getMyContractByAddress(this.addressInfo.address);
+       }
       setInterval(() => {
         this.defaultAddress = localStorage.getItem(chainIdNumber());
         if(this.addressInfo.address){
@@ -125,7 +124,6 @@
        * @param tab
        **/
       handleClick(tab) {
-       // console.log(tab.name);
         if (tab.name === 'contractSecond') {
           this.searchContract = '';
           this.isCollection = false;
@@ -181,7 +179,6 @@
        * @param activeName
        */
       toUrl(name, parms, type = 0, activeName) {
-        //console.log(name) contractInfo
         if (type.toString() === '0') {
           if (name === 'contractInfo') {
             this.$router.push({

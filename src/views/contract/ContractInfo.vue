@@ -158,7 +158,9 @@
       this.contractTxList(this.pageIndex, this.pageSize, 0, this.contractAddress);
       setInterval(() => {
         this.defaultAddress = localStorage.getItem(chainIdNumber());
-      }, 500);
+        this.contractInfoByAddress(this.contractAddress);
+        this.contractTxList(this.pageIndex, this.pageSize, 0, this.contractAddress);
+      }, 3000);
     },
     beforeDestroy() {
 
@@ -191,7 +193,6 @@
       async contractInfoByAddress(address) {
         await this.$post('/', 'getContract', [address])
           .then((response) => {
-            console.log(response);
             if (response.hasOwnProperty("result")) {
               response.result.createTxHashs = superLong(response.result.createTxHash, 5);
               response.result.balance = timesDecimals(response.result.balance);
@@ -232,7 +233,6 @@
       async contractTxList(pageIndex, pageSize, type, address) {
         await this.$post('/', 'getContractTxList', [pageIndex, pageSize, type, address])
           .then((response) => {
-            //console.log(response);
             if (response.hasOwnProperty("result")) {
               for (let item of response.result.list) {
                 item.time = moment(getLocalTime(item.time * 1000)).format('YYYY-MM-DD HH:mm:ss');
@@ -345,7 +345,6 @@
           let inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 17);
           let tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 17, contractDelete);
           let txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
-          //console.log(txhex);
           //验证并广播交易
           await validateAndBroadcast(txhex).then((response) => {
             if (response.success) {
@@ -371,7 +370,6 @@
        * @param type
        */
       toUrl(name,params, type = 0) {
-        //console.log(name)
         if (type === 0) {
           let newQuery = {hash: params};
           this.$router.push({
