@@ -11,7 +11,7 @@
       <div class="modes bg-white w1200">
         <div class="parameter" style="padding-top: 1rem">
           <el-form-item :label="$t('deploy.deploy21')" prop="alias">
-            <el-input v-model="deployForm.alias" autocomplete="off" @change="changeAlias">
+            <el-input v-model="deployForm.alias" autocomplete="off" >
             </el-input>
           </el-form-item>
         </div>
@@ -35,7 +35,7 @@
                         :prop="'parameterList.' + index + '.value'"
                         :rules="{required: domain.required,message:domain.name+$t('call.call2'), trigger: 'blur'}"
           >
-            <el-input v-model.trim="domain.value" @change="changeParameter(tipSuccess)">
+            <el-input v-model.trim="domain.value">
             </el-input>
           </el-form-item>
         </div>
@@ -185,7 +185,7 @@
        * 合约名称 重新调取方法
        **/
       changeAlias() {
-        if (this.deployForm.hex) {
+        if (this.deployForm.hex && this.deployForm.parameterList.length !== 0) {
           this.changeParameter();
         }
       },
@@ -236,6 +236,8 @@
         if (newArgs.allParameter) {
           this.validateContractCreate(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args,callback);
           this.deployForm.price = sdk.CONTRACT_MINIMUM_PRICE;
+        }else{
+            this.$message({message: this.$t('error.10013') , type: 'error', duration: 2000});
         }
       },
 
@@ -360,11 +362,16 @@
        * @param formName
        **/
       submitTestDeploy(formName) {
+       let newArgs = getArgs(this.deployForm.parameterList);
+        if(!this.deployForm.alias ||!newArgs.allParameter){
+             this.$message({message: this.$t('error.10013') , type: 'error', duration: 2000});
+        }
         this.$refs[formName].validate((valid) => {
           if (valid) {
-            let newArgs = getArgs(this.deployForm.parameterList);
+  //          let newArgs = getArgs(this.deployForm.parameterList);
             if (newArgs.allParameter) {
               this.validateContractCreate(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args,this.tipSuccess);
+              this.deployForm.price = sdk.CONTRACT_MINIMUM_PRICE;
             }
           } else {
             return false;

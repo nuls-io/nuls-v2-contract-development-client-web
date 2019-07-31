@@ -184,7 +184,9 @@
        * 判断所有必填参数是否有值
        **/
       changeParameter() {
-        this.chainMethodCall();
+         if (!this.selectionData.view) {
+            this.chainMethodCall();
+        }
       },
 
       /**
@@ -265,8 +267,6 @@
        * @param args
        */
       async validateContractCall(sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args,callback) {
-     // PARAMETER.method = 'validateContractCall';
-     // PARAMETER.params =[chainID(),sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args];
       return await post('/','validateContractCall',[sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args])
           .then((response) => {
             if (response.result.success) {
