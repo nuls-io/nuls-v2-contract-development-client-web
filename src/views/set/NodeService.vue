@@ -95,6 +95,8 @@
 <script>
   import axios from 'axios'
   import {defaultData} from '@/config'
+  import {setPropertyAtBackEnd} from '@/api/requestData'
+
 
   export default {
     data() {
@@ -175,11 +177,25 @@
             this.nodeServiceData[index].selection = true;
             localStorage.setItem("urls", JSON.stringify(this.nodeServiceData[index]));
             localStorage.setItem("urlsData", JSON.stringify(this.nodeServiceData));
+            console.log(this.nodeServiceData[index].urls);
+            this.setUrlAddress(this.nodeServiceData[index].urls);
             setTimeout(() => {
               this.loading = false;
             }, 2000);
           }
         }
+      },
+
+      setUrlAddress(urls){
+         setPropertyAtBackEnd("apiModuleAddress",urls).then((response) => {
+              if (response.success) {
+                  // this.$message({message: this.$t('public.setsuccess'), type: 'error', duration: 1000});
+              } else {
+                   this.$message({message: this.$t('public.setfail') , type: 'error', duration: 1000});
+              }
+         }).catch((error) => {
+                this.$message({message: this.$t('public.setfail')+error , type: 'error', duration: 1000});
+         });
       },
 
       /**
@@ -226,6 +242,7 @@
           if (item.selection) {
             isUrl = false;
             localStorage.setItem("urls", JSON.stringify(item));
+            this.setUrlAddress(item.urls);
           }
           newData.push(item);
         }
@@ -237,6 +254,7 @@
             if (Number(item) === minIndex) {
               newData[minIndex].selection = true;
               localStorage.setItem("urls", JSON.stringify(newData[minIndex]));
+              this.setUrlAddress(newData[minIndex].urls);
             }
           }
         }
@@ -310,9 +328,6 @@
        * @param formName
        */
       async submitForm(formName) {
-             console.log(formName);
-             console.log(this.testInfo.result.defaultAsset.assetId);
-              console.log(this.testInfo.result.defaultAsset);
         this.$refs[formName].validate((valid) => {
           if (valid) {
             let newNodeInfo = {
@@ -355,7 +370,6 @@
        * Url改变
        **/
       changeUrls(e) {
-        console.log(e);
         this.testInfo.state = 0;
         this.testInfo.result = {}
       },

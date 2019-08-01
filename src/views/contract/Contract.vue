@@ -100,7 +100,7 @@
         if(this.addressInfo.address){
                this.getMyContractByAddress(this.addressInfo.address);
         };
-      }, 5000);
+      }, 8000);
     },
     filters :{
         convertTime(value){

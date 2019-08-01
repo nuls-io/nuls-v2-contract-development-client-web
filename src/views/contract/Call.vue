@@ -21,7 +21,7 @@
         </el-form-item>
         <div class="senior-div" v-if="callForm.senior">
           <el-form-item label="Gas Limit" prop="gas">
-            <el-input v-model="callForm.gas"></el-input>
+          <el-input v-model="callForm.gas" ></el-input>
           </el-form-item>
           <el-form-item label="Price" prop="price">
             <el-input v-model="callForm.price"></el-input>
@@ -365,9 +365,9 @@
         axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
           if (response.data.hasOwnProperty('result')) {
-            this.callResult="合约调用成功，交易数据HASH: " + response.data.result.txHash;
+            this.callResult=this.$t('call.call11') + response.data.result.txHash;
            }else{
-           this.$message({message: "合约调用失败: " + response.data.error.message, type: 'error', duration: 2000});
+           this.$message({message: this.$t('call.call12')+ response.data.error.message, type: 'error', duration: 2000});
            }
           }).catch((err) => {
               console.log(err)

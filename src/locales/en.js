@@ -72,6 +72,8 @@ const en = {
     "err2": "Failed to obtain account balance:",
     "err3": "Obtain account balance exceptions:",
 
+    "setsuccess": "Back-end parameter settings were successful",
+    "setfail": "Backend parameter settings failed",
   },
 
   "error": {
@@ -745,6 +747,8 @@ const en = {
     "call8": "Unchained method call failed",
     "call9": "Unchained method call exception",
     "call10": "Gas too small may cause contract transactions to fail",
+    "call11":"Contract invocation is successful, transaction data HASH: ",
+    "call12":"Contract call failed, error message: ",
     "call": "",
   },
 
@@ -773,6 +777,9 @@ const en = {
     "deploy20": "Contract name (only lowercase letters, numbers, underscores are allowed (underscores cannot be at both ends)",
     "deploy21": "Contract Name",
     "deploy22":"Start deploy contract",
+    "deploy23":"The current contract code has been read automatically. If you need to deploy another contract, please upload it by yourself.",
+    "deploy24":"Contract deployment is successful, contract address:",
+    "deploy25":"Contract deployment failed, error message:",
     "deploy": "deploy",
   },
 

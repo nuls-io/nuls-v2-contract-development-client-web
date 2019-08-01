@@ -160,7 +160,7 @@
         this.defaultAddress = localStorage.getItem(chainIdNumber());
         this.contractInfoByAddress(this.contractAddress);
         this.contractTxList(this.pageIndex, this.pageSize, 0, this.contractAddress);
-      }, 3000);
+      }, 8000);
     },
     beforeDestroy() {
 

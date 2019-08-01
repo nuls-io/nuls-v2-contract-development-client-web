@@ -27,7 +27,7 @@
             <p class="font14">{{$t('deploy.deploy3')}}</p>
             <p class="font12" v-show="fileName">{{$t('deploy.deploy4')}}:{{fileName}}</p>
           </div>
-          <div class="parameter" v-if="autoLoad==='1'">已经自动读取当前开发的合约代码，若需另外部署合约，请自行上传</div>
+          <div class="parameter" v-if="autoLoad==='1'">{{$t('deploy.deploy23')}}</div>
         </div>
 
         <div class="parameter" v-if="deployForm.parameterList">
@@ -46,11 +46,11 @@
           </el-form-item>
           <div v-if="deployForm.senior" class="senior-div bg-white">
             <el-form-item label="Gas Limit" prop="gas">
-              <el-input v-model="deployForm.gas">
+              <el-input v-model.number="deployForm.gas" type="number"  >
               </el-input>
             </el-form-item>
             <el-form-item label="Price" prop="price">
-              <el-input v-model="deployForm.price">
+              <el-input v-model.number="deployForm.price" type="number" >
               </el-input>
             </el-form-item>
             <el-form-item :label="$t('public.contractInfo')" prop="addtion">
@@ -61,7 +61,7 @@
         </div>
       </div>
       <el-form-item class="form-next">
-        <el-button type="success" @click="submitTestDeploy('deployForm')">
+        <el-button type="success" @click="submitTestDeploy('deployForm',tipSuccess)">
           {{$t('deploy.deploy5')}}
         </el-button>
         <br/>
@@ -127,7 +127,7 @@
             {required: true, message: this.$t('deploy.deploy7'), trigger: 'blur'},
           ],
           gas: [
-            {type: 'number', required: true, message: this.$t('deploy.deploy8'), trigger: 'blur'},
+            {type: 'number',required: true, message: this.$t('deploy.deploy8'), trigger: 'blur'},
           ],
           price: [
             {type: 'number', required: true, message: this.$t('deploy.deploy9'), trigger: 'blur'},
@@ -149,6 +149,7 @@
     },
     created() {
       this.autoLoad='0';
+      this.isTestSubmit=false;
       this.createAddress = this.addressInfo.address;
       this.getBalanceByAddress(nuls.verifyAddress(this.addressInfo.address).chainId, 1, this.createAddress);
       this.getDefaultContract();
@@ -182,20 +183,11 @@
       },
 
       /**
-       * 合约名称 重新调取方法
-       **/
-      changeAlias() {
-        if (this.deployForm.hex && this.deployForm.parameterList.length !== 0) {
-          this.changeParameter();
-        }
-      },
-
-      /**
        * 提示合约测试通过
        **/
      tipSuccess(){
            this.$message({message: this.$t('deploy.deploy16'), type: 'success', duration: 2000});
-        },
+     },
 
       /**
        * hex码 有值获取参数
@@ -209,7 +201,7 @@
             if (parameter.data.length !== 0) {
               this.deployForm.parameterList = parameter.data
             } else {
-              this.changeParameter();
+             // this.changeParameter();
             }
           } else {
             this.$message({message: this.$t('deploy.deploy10') + parameter.data.error, type: 'error', duration: 2000});
@@ -229,19 +221,6 @@
       },
 
       /**
-       * 判断所有必填参数是否有值
-       **/
-      changeParameter(callback) {
-        let newArgs = getArgs(this.deployForm.parameterList);
-        if (newArgs.allParameter) {
-          this.validateContractCreate(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args,callback);
-          this.deployForm.price = sdk.CONTRACT_MINIMUM_PRICE;
-        }else{
-            this.$message({message: this.$t('error.10013') , type: 'error', duration: 2000});
-        }
-      },
-
-      /**
        * 验证创建合约交易
        * @param createAddress
        * @param gasLimit
@@ -255,6 +234,7 @@
         return  axios.post(LOCALHOST_API_URL,PARAMETER)
           .then((response) => {
             if (response.data.hasOwnProperty("result")) {
+              this.isTestSubmit=true;
               this.imputedContractCreateGas(createAddress, contractCode, args,callback);
             } else {
               this.$message({message: this.$t('deploy.deploy11') + response.data.error.message, type: 'error', duration: 2000});
@@ -332,9 +312,11 @@
         if (!contractCreate.chainId || !contractCreate.contractAddress || !contractCreate.contractCode || !contractCreate.gasLimit || !contractCreate.price || !contractCreate.sender) {
           this.$message({message: this.$t('deploy.deploy15'), type: 'error', duration: 2000});
         } else {
+        console.log("callback111");
             this.contractCreateTxData = contractCreate;
             if(callback instanceof Function){
                 callback();
+                 console.log("callback");
             }
         }
       },
@@ -361,17 +343,16 @@
        * 测试部署合约
        * @param formName
        **/
-      submitTestDeploy(formName) {
+      submitTestDeploy(formName,callback) {
+       this.deployForm.price = sdk.CONTRACT_MINIMUM_PRICE;
        let newArgs = getArgs(this.deployForm.parameterList);
         if(!this.deployForm.alias ||!newArgs.allParameter){
              this.$message({message: this.$t('error.10013') , type: 'error', duration: 2000});
         }
         this.$refs[formName].validate((valid) => {
           if (valid) {
-  //          let newArgs = getArgs(this.deployForm.parameterList);
             if (newArgs.allParameter) {
-              this.validateContractCreate(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args,this.tipSuccess);
-              this.deployForm.price = sdk.CONTRACT_MINIMUM_PRICE;
+              this.validateContractCreate(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args,callback);
             }
           } else {
             return false;
@@ -385,15 +366,26 @@
        * @param formName
        **/
       submitDeploy(formName) {
+      if(!this.isTestSubmit){
+        this.submitTestDeploy(formName,this.showPassword);
+      }else{
         this.$refs[formName].validate((valid) => {
           if (valid) {
-            this.isTestSubmit = false;
-            this.$refs.password.showPassword(true)
+            this.showPassword();
           } else {
             return false;
           }
         });
+      }
       },
+
+      /**
+       * 提示合约测试通过
+       **/
+     showPassword(){
+        this.$refs.password.showPassword(true);
+        this.isTestSubmit=false;
+     },
 
       /**
        *  获取密码框的密码
@@ -407,12 +399,12 @@
            axios.post(LOCALHOST_API_URL, PARAMETER)
             .then((response) => {
               if (response.data.hasOwnProperty('result')) {
-                this.$message({message: "合约部署成功，合约地址: " + response.data.result.contractAddress, type: 'success', duration: 2000});
-                this.getDefaultContract();
-
+                this.$message({message: this.$t('deploy.deploy24') + response.data.result.contractAddress, type: 'success', duration: 2000});
+                 this.getDefaultContract();
               }else{
-              this.$message({message: "合约部署失败: " + response.data.error.message, type: 'error', duration: 2000});
+              this.$message({message: this.$t('deploy.deploy25')+ response.data.error.message, type: 'error', duration: 2000});
               }
+
             }).catch((err) => {
             console.log(err)
           });
@@ -429,6 +421,7 @@
         let obj = document.getElementById("fileId");
         obj.click();
         obj.onchange = function () {
+           console.log(this.value);
           if (this.value !== '') {
             let file = obj.files[0];
             _this.fileName = file.name;
