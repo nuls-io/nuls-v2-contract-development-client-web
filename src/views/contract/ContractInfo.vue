@@ -197,6 +197,10 @@
               response.result.createTxHashs = superLong(response.result.createTxHash, 5);
               response.result.balance = timesDecimals(response.result.balance);
               this.contractInfo = response.result;
+              //解决重载的问题
+              for(let item in response.result.methods){
+                response.result.methods[item].keys=item;
+              }
               this.modelData = (function () {
                                 var methodsFilter=[];
                                var methods =response.result.methods;

@@ -3,8 +3,8 @@
     <el-form :model="callForm" :rules="callRules" ref="callForm" class="call-form">
       <el-form-item label="" prop="region" class="search-model">
         <el-select v-model="callForm.modelValue" :placeholder="$t('call.call1')" @change="changeModel">
-          <el-option v-for="item in callForm.modelData"  :key="item.name" :label="item.name"
-                     :value="item.name">
+          <el-option v-for="item in callForm.modelData"  :key="item.keys" :label="item.name"
+                     :value="item.keys">
           </el-option>
         </el-select>
       </el-form-item>
@@ -165,7 +165,7 @@
         this.callResult = '';
         this.callForm.parameterList=[];
         for (let itme of this.callForm.modelData) {
-          if (itme.name === val) {
+          if (itme.keys === val) {
             this.selectionData = itme;
             this.callForm.parameterList = itme.params;
             this.callForm.values = 0;
