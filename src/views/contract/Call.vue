@@ -12,7 +12,7 @@
                     :prop="'parameterList.' + index + '.value'"
                     :rules="{required: domain.required,message:domain.name+$t('call.call2'), trigger: 'blur'}"
       >
-        <el-input v-model="domain.value"  @change="changeParameter"></el-input>
+        <el-input v-model="domain.value" ></el-input>
       </el-form-item>
 
       <div class="div-senior" v-if="!selectionData.view">
@@ -27,7 +27,7 @@
             <el-input v-model="callForm.price"></el-input>
           </el-form-item>
           <el-form-item label="Value" prop="values" v-show="selectionData.payable">
-            <el-input v-model="callForm.values" @change="changeParameter"></el-input>
+            <el-input v-model="callForm.values"></el-input>
           </el-form-item>
           <el-form-item :label="$t('public.remarks')" prop="addtion">
              <el-input type="textarea" :rows="3" maxlength="200" show-word-limit v-model="callForm.addtion">
@@ -207,14 +207,21 @@
                 this.methodCall(this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs)
               }
             } else { //上链方法
-              this.chainMethodCall();
-              this.$refs.password.showPassword(true);
+              this.chainMethodCall(this.showPassword);
+            // this.$refs.password.showPassword(true);
             }
           } else {
             return false;
           }
         });
       },
+
+      /**
+       * 展示密码窗口
+       **/
+     showPassword(){
+        this.$refs.password.showPassword(true);
+     },
 
       /**
        * 不上链方法调用

@@ -204,7 +204,8 @@
              // this.changeParameter();
             }
           } else {
-            this.$message({message: this.$t('deploy.deploy10') + parameter.data.error, type: 'error', duration: 2000});
+            this.$message({message: this.$t('deploy.deploy10') + parameter.data.message, type: 'error', duration: 2000});
+              this.deployLoading = false;
           }
         }else{
             this.fileName = '';
@@ -234,7 +235,6 @@
         return  axios.post(LOCALHOST_API_URL,PARAMETER)
           .then((response) => {
             if (response.data.hasOwnProperty("result")) {
-              this.isTestSubmit=true;
               this.imputedContractCreateGas(createAddress, contractCode, args,callback);
             } else {
               this.$message({message: this.$t('deploy.deploy11') + response.data.error.message, type: 'error', duration: 2000});
@@ -312,7 +312,7 @@
         if (!contractCreate.chainId || !contractCreate.contractAddress || !contractCreate.contractCode || !contractCreate.gasLimit || !contractCreate.price || !contractCreate.sender) {
           this.$message({message: this.$t('deploy.deploy15'), type: 'error', duration: 2000});
         } else {
-        console.log("callback111");
+            this.isTestSubmit=true;
             this.contractCreateTxData = contractCreate;
             if(callback instanceof Function){
                 callback();
@@ -380,7 +380,7 @@
       },
 
       /**
-       * 提示合约测试通过
+       * 展示密码窗口
        **/
      showPassword(){
         this.$refs.password.showPassword(true);
@@ -421,7 +421,6 @@
         let obj = document.getElementById("fileId");
         obj.click();
         obj.onchange = function () {
-           console.log(this.value);
           if (this.value !== '') {
             let file = obj.files[0];
             _this.fileName = file.name;

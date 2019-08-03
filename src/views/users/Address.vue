@@ -116,9 +116,9 @@
                         item.balance = timesDecimals(item.balance);
                   }
                  this.pageTotal = response.result.total;
-                  if (!localStorage.hasOwnProperty(chainIdNumber())) {
-                        localStorage.setItem(chainIdNumber(), this.addressList[0].address)
-                   }
+                  //if (!localStorage.hasOwnProperty(chainIdNumber())) {
+                      //  localStorage.setItem(chainIdNumber(), this.addressList[0].address)
+                  // }
                   this.defaultAddress = localStorage.getItem(chainIdNumber());
               }
             } else {

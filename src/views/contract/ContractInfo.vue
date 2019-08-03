@@ -36,10 +36,11 @@
       <div class="cb"></div>
       <el-tabs v-model="activeName" @tab-click="handleClick">
         <el-tab-pane :label="$t('home.home2')" name="first">
+        <!--
           <SelectBar v-model="contractsTypeRegion" :typeOptions="contractsStatusOptions" typeName="type"
                      @change="changeType">
           </SelectBar>
-
+        -->
           <el-table :data="contractTxData" stripe border style="width: 100%;margin-top: 14px">
             <el-table-column label="" width="30">
             </el-table-column>

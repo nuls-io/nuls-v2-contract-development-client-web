@@ -99,7 +99,7 @@
         this.defaultAddress = localStorage.getItem(chainIdNumber());
         if(this.addressInfo.address){
                this.getMyContractByAddress(this.addressInfo.address);
-        };
+        }
       }, 8000);
     },
     filters :{

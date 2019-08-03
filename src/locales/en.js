@@ -65,6 +65,8 @@ const en = {
     "into":"Into",
     "re-import":"Re-import",
     "": "",
+    "platform-name":"The Offline Smart Contract Debugging Platform",
+    "platform-desc":"The platform is based on NULS 2.0 API Module, which can be used for the release and invocation of intelligent contracts without the need to deploy NULS 2.0 wallet. Before issuing and invoking a smart contract, check that the service node is configured correctly.",
 
     "err": "Verify and broadcast transaction failure:",
     "err0": "Verify and broadcast transaction exceptions:",
@@ -173,7 +175,7 @@ const en = {
     "ac_0049": "Transaction coinFrom underpayment",
     "ac_0050": "There can only be one multi-signature address",
     "ac_0051": "CoinData cannot have contract address",
-    "ac_0052":"Please select the account address",
+    "ac_0052":"Please select the account address on the address list page",
     "bl_0001": "Chain switch failed",
     "bl_0002": "The local genesis block differ from network",
     "bl_0003": "Error occur when init local block",
