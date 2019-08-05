@@ -5,7 +5,7 @@
       <span v-show="addressInfo.alias"> | {{addressInfo.alias}}</span>
       <i class="iconfont icon-fuzhi clicks"></i>
     </h3>
-    <el-tabs v-model="contractActive" class="w1200" @tab-click="handleClick">
+    <el-tabs v-model="contractActive" class="w1200" @tab-click="handleClick" style="margin-bottom:100px">
       <el-tab-pane :label="$t('contract.contract1')" name="contractFirst">
         <div class="my_contract">
           <el-table :data="myContractData" stripe border>

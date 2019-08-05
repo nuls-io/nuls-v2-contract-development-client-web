@@ -34,7 +34,7 @@
         </ul>
       </div>
       <div class="cb"></div>
-      <el-tabs v-model="activeName" @tab-click="handleClick">
+      <el-tabs v-model="activeName" @tab-click="handleClick" style="margin-bottom:100px">
         <el-tab-pane :label="$t('home.home2')" name="first">
         <!--
           <SelectBar v-model="contractsTypeRegion" :typeOptions="contractsStatusOptions" typeName="type"
