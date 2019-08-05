@@ -177,7 +177,6 @@
             this.nodeServiceData[index].selection = true;
             localStorage.setItem("urls", JSON.stringify(this.nodeServiceData[index]));
             localStorage.setItem("urlsData", JSON.stringify(this.nodeServiceData));
-            console.log(this.nodeServiceData[index].urls);
             this.setUrlAddress(this.nodeServiceData[index].urls);
             setTimeout(() => {
               this.loading = false;
@@ -240,7 +239,7 @@
               console.log(error);
             });
           if (item.selection) {
-            isUrl = false;
+            isUrl=false;
             localStorage.setItem("urls", JSON.stringify(item));
             this.setUrlAddress(item.urls);
           }

@@ -171,11 +171,6 @@
             this.callForm.values = 0;
             this.callForm.gas = 0;
             this.callForm.price = 0;
-            if (!itme.view) {
-               if(!itme.payable){
-                  this.chainMethodCall();
-               }
-            }
           }
         }
       },
