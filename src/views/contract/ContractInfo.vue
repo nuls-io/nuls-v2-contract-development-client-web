@@ -116,7 +116,7 @@
   import nuls from 'nuls-sdk-js'
   import moment from 'moment'
   import BackBar from '@/components/BackBar'
-  import SelectBar from '@/components/SelectBar';
+ // import SelectBar from '@/components/SelectBar';
   import Call from './Call'
   import {timesDecimals, getLocalTime, superLong, connectToExplorer,chainIdNumber} from '@/api/util'
   import {getNulsBalance, inputsOrOutputs, validateAndBroadcast} from '@/api/requestData'
@@ -168,7 +168,6 @@
     },
     components: {
       BackBar,
-      SelectBar,
       Call,
       Password
     },
@@ -183,7 +182,7 @@
     },
     methods: {
 
-      handleClick(tab, event) {
+      handleClick(tab) {
         console.log(tab.name);
       },
 
@@ -203,15 +202,15 @@
                 response.result.methods[item].keys=item;
               }
               this.modelData = (function () {
-                                var methodsFilter=[];
-                               var methods =response.result.methods;
-                                     for(var i=0;i<methods.length;i++){
-                                        if(methods[i].name!='<init>' && methods[i].name!='_payable'){
-                                            methodsFilter.push(methods[i]);
-                                        }
-                                     }
-                                   return methodsFilter;
-                               })();
+                  var methodsFilter=[];
+                  var methods =response.result.methods;
+                   for(var i=0;i<methods.length;i++){
+                       if(methods[i].name!='<init>' && methods[i].name!='_payable'){
+                          methodsFilter.push(methods[i]);
+                       }
+                    }
+                    return methodsFilter;
+               })();
               this.decimals = response.result.decimals;
               this.modeList = response.result.methods;
               this.isCancel = this.addressInfo.address === this.contractInfo.creater
