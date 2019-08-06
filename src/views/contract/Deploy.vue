@@ -104,6 +104,34 @@
           callback();
         }
       };
+
+      let validateGas = (rule, value, callback) => {
+        if (!value) {
+          //callback(new Error(this.$t('deploy.deploy8')));
+          callback();
+        } else if (value < 1) {
+          this.deployForm.gas = 1;
+          callback();
+        } else if (value > 10000000) {
+          this.deployForm.gas = 10000000;
+          callback();
+        } else {
+          callback();
+        }
+      };
+
+      let validatePrice = (rule, value, callback) => {
+        if (!value) {
+           this.deployForm.price = sdk.CONTRACT_MINIMUM_PRICE;
+           callback();
+        } else if (value < sdk.CONTRACT_MINIMUM_PRICE) {
+          this.deployForm.price = sdk.CONTRACT_MINIMUM_PRICE;
+          callback();
+        } else {
+          callback();
+        }
+      };
+
       return {
         //选择部署
         resource: '1',
@@ -127,10 +155,10 @@
             {required: true, message: this.$t('deploy.deploy7'), trigger: 'blur'},
           ],
           gas: [
-            {type: 'number',required: true, message: this.$t('deploy.deploy8'), trigger: 'blur'},
+            {type: 'number',validator: validateGas, trigger: 'blur'},
           ],
           price: [
-            {type: 'number', required: true, message: this.$t('deploy.deploy9'), trigger: 'blur'},
+            {type: 'number', validator: validatePrice,trigger: 'blur'},
           ]
         },
         createAddress: '',//创建合约地址
@@ -169,6 +197,7 @@
           this.deployForm.parameterList = [];
           this.deployForm.gas = '';
           this.deployForm.price = '';
+          this.deployForm.alias = '';
         }
       }
     },

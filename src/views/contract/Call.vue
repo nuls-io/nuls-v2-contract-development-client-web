@@ -65,7 +65,8 @@
 
       let validateGas = (rule, value, callback) => {
         if (!value) {
-          callback(new Error(this.$t('deploy.deploy8')));
+          //callback(new Error(this.$t('deploy.deploy8')));
+          callback();
         } else if (value < 1) {
           this.callForm.gas = 1;
           callback();
@@ -78,9 +79,11 @@
       };
       let validatePrice = (rule, value, callback) => {
         if (!value) {
-          callback(new Error(this.$t('deploy.deploy9')));
-        } else if (value < 1) {
-          this.callForm.price = 1;
+           this.callForm.price = sdk.CONTRACT_MINIMUM_PRICE;
+           callback();
+        } else if (value < sdk.CONTRACT_MINIMUM_PRICE) {
+          this.callForm.price = sdk.CONTRACT_MINIMUM_PRICE;
+          callback();
         } else {
           callback();
         }
