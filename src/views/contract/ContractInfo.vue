@@ -44,13 +44,16 @@
           <el-table :data="contractTxData" stripe border style="width: 100%;margin-top: 14px">
             <el-table-column label="" width="30">
             </el-table-column>
-            <el-table-column prop="height" :label="$t('public.height')" width="180" align="left">
+            <el-table-column prop="height" :label="$t('public.height')" width="100" align="left">
               <template slot-scope="scope">
                 <span class="cursor-p click">{{ scope.row.blockHeight }}</span>
               </template>
             </el-table-column>
-            <el-table-column prop="height" :label="$t('contractInfo.contractInfo5')" width="180" align="left">
+            <el-table-column prop="height" :label="$t('contractInfo.contractInfo5')" width="140" align="left">
               <template slot-scope="scope"><span>{{ $t('type.'+scope.row.type) }}</span></template>
+            </el-table-column>
+            <el-table-column prop="height" :label="$t('contractInfo.contractInfo6')" width="180" align="left">
+              <template slot-scope="scope"><span>{{scope.row.contractMethod}}</span></template>
             </el-table-column>
             <el-table-column label="TXID" min-width="280" align="left">
               <template slot-scope="scope">
