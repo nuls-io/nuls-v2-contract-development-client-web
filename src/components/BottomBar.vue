@@ -72,7 +72,6 @@
       setInterval(() => {
         this.getHeaderInfo();
         this.getAddressInfo();
-         this.serviceUrls = JSON.parse(localStorage.getItem("urls"));
       }, 10000);
     },
     watch: {},

@@ -91,7 +91,9 @@
             </el-table-column>
             <el-table-column prop="height" :label="$t('contractInfo.contractInfo7')" min-width="280" align="left">
               <template slot-scope="scope">
-                <span v-for="item in scope.row.params" :key="item.name">{{item.name}}-</span>
+                <span v-for="item in scope.row.params" :key="item.name">
+                      {"type":"{{item.type}}","name":"{{item.name}}","required":{{item.required}}}-
+                </span>
               </template>
             </el-table-column>
             <el-table-column prop="returnType" :label="$t('contractInfo.contractInfo8')" width="280" align="left">
