@@ -368,7 +368,7 @@
       /**
        * Url改变
        **/
-      changeUrls(e) {
+      changeUrls() {
         this.testInfo.state = 0;
         this.testInfo.result = {}
       },

@@ -120,7 +120,7 @@
             item.addresss = superLong(item.address, 8);
           }
            this.defaultAddress = localStorage.getItem(chainIdNumber());
-         if(this.defaultAddress==''){
+         if(this.defaultAddress==''||this.defaultAddress==null){
            this.$router.push({
                  name: "address"
            })

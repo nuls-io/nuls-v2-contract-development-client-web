@@ -179,7 +179,9 @@
       this.autoLoad='0';
       this.isTestSubmit=false;
       this.createAddress = this.addressInfo.address;
-      this.getBalanceByAddress(nuls.verifyAddress(this.addressInfo.address).chainId, 1, this.createAddress);
+      if(this.createAddress){
+        this.getBalanceByAddress(nuls.verifyAddress(this.addressInfo.address).chainId, 1, this.createAddress);
+      }
       this.getDefaultContract();
     },
     mounted() {
