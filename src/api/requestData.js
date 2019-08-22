@@ -148,7 +148,6 @@ export async  function setPropertyAtBackEnd(property,value) {
   PARAMETER.params = [property, value];
   return axios.post(LOCALHOST_API_URL, PARAMETER)
       .then((response) => {
-        console.log(response);
     if (response.data.hasOwnProperty("result")) {
       return {success: response.data.result};
     } else {

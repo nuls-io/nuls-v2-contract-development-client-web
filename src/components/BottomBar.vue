@@ -28,7 +28,7 @@
       return {
         heightInfo: [],//高度信息
         serviceUrls: {
-          urls: '',
+          urls: ''
         },
       }
     },
@@ -84,13 +84,11 @@
        * 获取主网最新高度和本地高度
        */
       getHeaderInfo() {
-       // const url = localStorage.hasOwnProperty('urls') ? JSON.parse(localStorage.getItem('urls')).urls : 'http://192.168.1.40:18003/';
         const url =  API_URL;
         this.serviceUrls.urls=API_URL;
         const params = {"jsonrpc": "2.0", "method": "getInfo", "params": [chainID()], "id": 5898};
         axios.post(url, params)
           .then((response) => {
-            //console.log(response.data);
             if (response.data.hasOwnProperty("result")) {
               this.heightInfo = response.data.result;
               sessionStorage.setItem("info", JSON.stringify(response.data.result))

@@ -1,6 +1,6 @@
 import {BigNumber} from 'bignumber.js'
 import copy from 'copy-to-clipboard'
-import {explorerUrl, LOCALHOST_API_URL, PARAMETER} from '@/config.js'
+import {explorerUrl,PARAMETER} from '@/config.js'
 import axios from 'axios'
 
 /**
@@ -91,12 +91,12 @@ export function chainIdNumber() {
  * @returns {*}
  */
 export async function addressInfo() {
+  let localhost_api_url = localStorage.getItem("LOCAL_API_URL");
   let accountList = {};
   PARAMETER.method = 'getAccountList';
   PARAMETER.params = [chainID(), 1, 10];
-  await axios.post(LOCALHOST_API_URL, PARAMETER)
+  await axios.post(localhost_api_url, PARAMETER)
     .then((response) => {
-      //console.log(response.data);
       if (response.data.hasOwnProperty('result')) {
         for (let item of response.data.result.list) {
           item.balance = timesDecimals(item.balance);
