@@ -21,10 +21,13 @@
                 <span>{{scope.row.alias}}</span>
               </template>
             </el-table-column>
+            <el-table-column :label="$t('contract.contract16')" align="center">
+              <template slot-scope="scope"><span>{{ $t('contractType.'+scope.row.tokenType) }}</span></template>
+            </el-table-column>
             <el-table-column :label="$t('public.status')" align="center">
               <template slot-scope="scope"><span>{{ $t('contractStatus.'+scope.row.status) }}</span></template>
             </el-table-column>
-            <el-table-column prop="createTime" :label="$t('public.time')" align="center">
+            <el-table-column prop="createTime" :label="$t('public.time')"  width="170" align="center">
               <template slot-scope="scope">
                      <span>{{scope.row.createTime |convertTime}}</span>
                </template>
@@ -148,7 +151,7 @@
        * @param address
        **/
       async getMyContractByAddress(address) {
-        await this.$post('/', 'getAccountContractList', [this.pageIndex, this.pageSize, address, false, false])
+        await this.$post('/', 'getAccountContractList', [this.pageIndex, this.pageSize, address,-1, false])
           .then((response) => {
             if (response.hasOwnProperty("result")) {
               this.myContractData = response.result.list;

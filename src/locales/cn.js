@@ -471,6 +471,13 @@ const cn = {
     "3": "终止"
   },
 
+  "contractType": {
+    "undefined": "",
+    "0": "非Token",
+    "1": "NRC20",
+    "2": "NRC721"
+  },
+
   "password": {
     "password0": "密码",
     "password1": "请输入密码",
@@ -716,6 +723,7 @@ const cn = {
     "contract13":"搜索合约失败:",
     "contract14":"搜索合约异常:",
     "contract15":"请输入正确的合约地址",
+    "contract16":"合约类型",
     "contract":"",
   },
 

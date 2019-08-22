@@ -60,7 +60,8 @@
     },
     components: {},
     created() {
-      this.getAddressList();
+        localStorage.setItem("LOCAL_API_URL", "http://"+window.location.host+"/offlineSmartContract");
+        this.getAddressList();
     },
     mounted() {
        setInterval(() => {

@@ -488,11 +488,18 @@ const en = {
 
   "contractStatus": {
     "undefined": "",
-    "-1": "Create failure",
-    "0": "Uncertificated",
-    "1": "Certificating",
-    "2": "Certificated",
-    "3": "Deleted"
+    "-1": "Execution failed",
+    "0": "Normal",
+    "1": "Normal",
+    "2": "Normal",
+    "3": "Termination"
+  },
+
+  "contractType": {
+    "undefined": "",
+    "0": "Non-Token",
+    "1": "NRC20",
+    "2": "NRC721"
   },
 
   "password": {
@@ -735,6 +742,7 @@ const en = {
     "contract13": "Search contract failed:",
     "contract14": "Search for contract exceptions:",
     "contract15": "Please enter the correct contract address",
+    "contract16":"Contract type",
     "contract": "",
   },
 
