@@ -1,7 +1,6 @@
 import axios from 'axios'
 import * as config from './../config.js'
 import {chainID} from './util'
-
 axios.defaults.timeout = config.API_TIME;
 axios.defaults.headers.post['Content-Type'] = 'application/json';
 
@@ -21,7 +20,6 @@ export function post(url, methodName, data = []) {
   return new Promise((resolve, reject) => {
     data.unshift(chainID());
     const params = {"jsonrpc": "2.0", "method": methodName, "params": data, "id": 5898};
-    //console.log(params);
     axios.post(url, params)
       .then(response => {
         resolve(response.data);

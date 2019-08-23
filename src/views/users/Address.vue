@@ -96,15 +96,16 @@
     mounted() {
     },
     methods: {
-
       /**
        * 获取账户列表
        */
       async getAddressList() {
-        await this.$localhostPost('', 'getAccountList', [this.pageIndex, this.pageSize])
+        PARAMETER.method = 'getAccountList';
+        PARAMETER.params = [chainID(), this.pageIndex, this.pageSize];
+        axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            if (response.hasOwnProperty("result")) {
-                this.addressList = response.result.list;
+            if (response.data.hasOwnProperty("result")) {
+                this.addressList = response.data.result.list;
                //如果没有账户跳转到创建账户界面
               if (this.addressList.length === 0) {
                      this.$router.push({
@@ -115,10 +116,7 @@
                     for (let item of this.addressList) {
                         item.balance = timesDecimals(item.balance);
                     }
-                 this.pageTotal = response.result.total;
-                  //if (!localStorage.hasOwnProperty(chainIdNumber())) {
-                      //  localStorage.setItem(chainIdNumber(), this.addressList[0].address)
-                  // }
+                 this.pageTotal = response.data.result.total;
                   this.defaultAddress = localStorage.getItem(chainIdNumber());
               }
             } else {
