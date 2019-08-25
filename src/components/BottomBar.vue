@@ -5,7 +5,7 @@
         <div class="left fl">
           <p class="fl">
             {{$t('bottom.serviceNode')}}:
-            <u class="click" @click="toUrl('nodeService')">{{serviceUrls.urls}}</u>
+            <u class="click" @click="toUrl('nodeService')">{{serviceUrls}}</u>
           </p>
         </div>
         <div class="right fr">
@@ -27,9 +27,7 @@
     data() {
       return {
         heightInfo: [],//高度信息
-        serviceUrls: {
-          urls: ''
-        },
+        serviceUrls:'', //服务节点
       }
     },
     created() {
@@ -52,7 +50,7 @@
         let urlsData = [...defaultData, ...newUrlsData];
         for (let item of urlsData) {
           if (item.selection) {
-            this.serviceUrls = item;
+            this.serviceUrls = item.urls;
           }
         }
         localStorage.removeItem('urlsData');
@@ -62,13 +60,13 @@
         for (let item of defaultData) {
           if (item.selection) {
             localStorage.setItem("urls", JSON.stringify(item));
-            this.serviceUrls = item;
+            this.serviceUrls = item.urls;
           }
         }
       }
       this.getHeaderInfo();
       setInterval(() => {
-        this.serviceUrls = JSON.parse(localStorage.getItem("urls"));
+        this.serviceUrls = API_URL;
       }, 500);
     },
     mounted() {
@@ -85,7 +83,8 @@
        */
       getHeaderInfo() {
         const url =  API_URL;
-        this.serviceUrls.urls=API_URL;
+       // this.serviceUrls.urls=API_URL;
+        this.serviceUrls= API_URL;
         const params = {"jsonrpc": "2.0", "method": "getInfo", "params": [chainID()], "id": 5898};
         axios.post(url, params)
           .then((response) => {
