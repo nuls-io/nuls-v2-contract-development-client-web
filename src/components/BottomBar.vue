@@ -7,11 +7,16 @@
             {{$t('bottom.serviceNode')}}:
             <u class="click" @click="toUrl('nodeService')">{{serviceUrls}}</u>
           </p>
+
         </div>
         <div class="right fr">
           {{$t('bottom.nodeHeight')}}: {{heightInfo.networkHeight}}/{{heightInfo.localHeight}}
         </div>
+
+         <span >{{$t('public.version')}}:</span>本地版本为0.13 ,最新版本为0.12 , 请点击Maven插件的Reimport重新导入最新版本
+
       </div>
+
     </div>
   </div>
 </template>
