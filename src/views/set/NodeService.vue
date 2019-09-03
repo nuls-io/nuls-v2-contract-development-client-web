@@ -390,7 +390,8 @@
        **/
       edit(index) {
         this.editIndex = index;
-        this.nodeServiceForm = this.nodeServiceData[index];
+        this.nodeServiceForm =JSON.parse(JSON.stringify(this.nodeServiceData[index]));
+       // this.nodeServiceForm = this.nodeServiceData[index];
         this.nodeServiceDialog = true;
       },
 

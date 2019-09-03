@@ -59,7 +59,7 @@ const en = {
     "about": "About",
     "logInfo": "Log Info",
     "see": "See",
-    "version": "Version",
+    "version": "Version Info",
     "checkUpdates": "Check Updates",
     "operatingSystem": "System",
     "into":"Into",

@@ -26,6 +26,7 @@
   import axios from 'axios'
   import {defaultData,API_URL} from '@/config.js'
   import {chainID, chainIdNumber, addressInfo, timesDecimals} from '@/api/util'
+  import {setPropertyAtBackEnd} from '@/api/requestData'
 
   export default {
     name: "bottom-bar",
@@ -36,39 +37,7 @@
       }
     },
     created() {
-      if (localStorage.hasOwnProperty('urlsData')) {
-        let newUrlsData = [];
-        let selectionUrl = '';
-        for (let item of JSON.parse(localStorage.getItem("urlsData"))) {
-          if (item.name !== 'Official') {
-            newUrlsData.push(item)
-          }
-          if (item.selection) {
-            selectionUrl = item.urls
-          }
-        }
-        for (let item of defaultData) {
-          if (item.urls === selectionUrl) {
-            item.selection = true
-          }
-        }
-        let urlsData = [...defaultData, ...newUrlsData];
-        for (let item of urlsData) {
-          if (item.selection) {
-            this.serviceUrls = item.urls;
-          }
-        }
-        localStorage.removeItem('urlsData');
-        localStorage.setItem("urlsData", JSON.stringify(urlsData));
-      } else {
-        localStorage.setItem("urlsData", JSON.stringify(defaultData));
-        for (let item of defaultData) {
-          if (item.selection) {
-            localStorage.setItem("urls", JSON.stringify(item));
-            this.serviceUrls = item.urls;
-          }
-        }
-      }
+      this.initServiceAddress();
       this.getHeaderInfo();
       setInterval(() => {
         this.serviceUrls = API_URL;
@@ -82,6 +51,101 @@
     },
     watch: {},
     methods: {
+
+       async initServiceAddress() {
+          let isUrl = true;//是否有可用连接
+          if (localStorage.hasOwnProperty('urlsData')) {
+            let newUrlsData = [];
+            let selectionUrl = '';
+            for (let item of JSON.parse(localStorage.getItem("urlsData"))) {
+              let startTime = (new Date()).valueOf();
+              let endTime = 0;
+              const params = {jsonrpc: "2.0", method: "getChainInfo", "params": [], "id": 5898};
+              await axios.post(item.urls, params)
+                .then(function (response) {
+                  if (response.data.hasOwnProperty("result")) {
+                    endTime = (new Date()).valueOf();
+                    item.delay = endTime - startTime;
+                    item.chainId = response.data.result.chainId;
+                    item.chainName = response.data.result.chainName;
+                  } else {
+                    item.delay = 100000;
+                    item.selection = false;
+                    item.state = 0;
+                  }
+                })
+                .catch(function (error) {
+                  item.delay = 200000;
+                  item.selection = false;
+                  item.state = 0;
+                  console.log(error);
+                });
+
+              if (item.name !== 'Official') {
+                newUrlsData.push(item)
+              }
+              //若缓存的服务节点并且可用则继续选择
+              if (item.selection && item.delay<100000) {
+                selectionUrl=item.urls;
+                isUrl=false;
+              }else{
+                 item.selection = false;
+              }
+            }
+
+            //若没有选择服务节点，则先检查配置的本地服务节点是否还有次优的服务节点；若没有再选择默认服务节点中的最优节点
+            if(isUrl){
+                let minNumber = Math.min.apply(Math, newUrlsData.map((o) => o.delay));
+                let minIndex = newUrlsData.map((o) => o.delay).findIndex((n) => n === minNumber);
+                if(minNumber<100000){
+                  for (let item in newUrlsData) {
+                    if (Number(item) === minIndex) {
+                       newUrlsData[minIndex].selection = true;
+                       selectionUrl=newUrlsData[minIndex].urls;
+                       isUrl=false;
+                    }
+                  }
+                }
+
+               if(isUrl){
+                 let minNumber = Math.min.apply(Math, defaultData.map((o) => o.delay));
+                 let minIndex = defaultData.map((o) => o.delay).findIndex((n) => n === minNumber);
+                 for (let item in defaultData) {
+                     if (Number(item) === minIndex) {
+                        defaultData[minIndex].selection = true;
+                        selectionUrl=defaultData[item].urls;
+                     }
+                 }
+               }
+            }else{
+              for (let item of defaultData) {
+                  if (item.urls === selectionUrl) {
+                    item.selection = true
+                  }
+              }
+            }
+
+            this.serviceUrls =selectionUrl;
+
+            let urlsData = [...defaultData, ...newUrlsData];
+            for (let item of urlsData) {
+                if(item.selection){
+                    localStorage.setItem("urls", JSON.stringify(item));
+                }
+            }
+            localStorage.removeItem('urlsData');
+            localStorage.setItem("urlsData", JSON.stringify(urlsData));
+          } else {
+            localStorage.setItem("urlsData", JSON.stringify(defaultData));
+            for (let item of defaultData) {
+              if (item.selection) {
+                localStorage.setItem("urls", JSON.stringify(item));
+                this.serviceUrls = item.urls;
+              }
+            }
+          }
+          this.setUrlAddress(this.serviceUrls);
+        },
 
       /**
        * 获取主网最新高度和本地高度
@@ -106,6 +170,21 @@
             this.heightInfo = {localHeight: 0, networkHeight: 0};
             console.log("getInfo:" + error)
           })
+      },
+
+        /**
+         * 设置后端的服务节点
+         **/
+       setUrlAddress(urls){
+         setPropertyAtBackEnd("apiModuleAddress",urls).then((response) => {
+              if (response.success) {
+                  // this.$message({message: this.$t('public.setsuccess'), type: 'error', duration: 1000});
+              } else {
+                   this.$message({message: this.$t('public.setfail') , type: 'error', duration: 1000});
+              }
+         }).catch((error) => {
+                this.$message({message: this.$t('public.setfail')+error , type: 'error', duration: 1000});
+         });
       },
 
       /**

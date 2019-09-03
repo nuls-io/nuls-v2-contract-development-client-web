@@ -14,7 +14,8 @@ setInterval(() => {
   API_URL = localStorage.hasOwnProperty("urls") ? JSON.parse(localStorage.getItem("urls")).urls : 'http://apitn1.nulscan.io/';
 }, 500);
 //正式、测试网络的api
-export let LOCALHOST_API_URL = "http://"+window.location.host+"/offlineSmartContract";
+//export let LOCALHOST_API_URL = "http://"+window.location.host+"/offlineSmartContract";
+export let LOCALHOST_API_URL = "http://127.0.0.1:8081/offlineSmartContract";
 export let PARAMETER = {jsonrpc: '2.0', method: '', params: [], id: 5898};
 
 
@@ -23,9 +24,7 @@ export const API_TIME = IS_DEV ? '29000' : '28000';
 //默认节点服务列表
 //默认节点服务列表
 export const defaultData = [
-  {name: 'Official',chainId:2,assetId:1,decimals:8,chainName:'tNULS', urls: 'https://beta.wallet.nuls.io/api', delay: '10ms', selection: false, isDelete: false},
   {name: 'Official',chainId:10,assetId:1,decimals:8,chainName:'tNULS', urls: 'http://apitn1.nulscan.io', delay: '10ms', selection: false, isDelete: false},
-  {name: 'Official',chainId:10,assetId:1,decimals:8,chainName:'tNULS', urls: 'http://apitn10.nulscan.io', delay: '10ms', selection: false, isDelete: false},
 ];
 
 //默认服务节点地址

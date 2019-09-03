@@ -59,7 +59,7 @@ const cn = {
     "about":"关 于",
     "logInfo":"日志信息",
     "see":"查看",
-    "version":"当前版本",
+    "version":"版本信息",
     "checkUpdates":"检查更新",
     "operatingSystem":"操作系统",
     "into":"进入",
