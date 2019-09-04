@@ -3,20 +3,17 @@
     <div class="bottom">
       <div class="w1200 font14">
         <div class="left fl">
-          <p class="fl">
-            {{$t('bottom.serviceNode')}}:
-            <u class="click" @click="toUrl('nodeService')">{{serviceUrls}}</u>
-          </p>
-
+          <div class="url">
+            {{$t('bottom.serviceNode')}}: <u class="click" @click="toUrl('nodeService')">{{serviceUrls}}</u>
+          </div>
+          <div class="version">
+            <span>{{$t('public.version')}}: </span>{{versionInfo}}
+          </div>
         </div>
         <div class="right fr">
           {{$t('bottom.nodeHeight')}}: {{heightInfo.networkHeight}}/{{heightInfo.localHeight}}
         </div>
-
-         <span >{{$t('public.version')}}:</span>本地版本为0.13 ,最新版本为0.12 , 请点击Maven插件的Reimport重新导入最新版本
-
       </div>
-
     </div>
   </div>
 </template>
@@ -24,7 +21,7 @@
 <script>
   import nuls from 'nuls-sdk-js'
   import axios from 'axios'
-  import {defaultData,API_URL} from '@/config.js'
+  import {defaultData,API_URL,LOCALHOST_API_URL} from '@/config.js'
   import {chainID, chainIdNumber, addressInfo, timesDecimals} from '@/api/util'
   import {setPropertyAtBackEnd} from '@/api/requestData'
 
@@ -34,10 +31,12 @@
       return {
         heightInfo: [],//高度信息
         serviceUrls:'', //服务节点
+        versionInfo:'',//版本信息
       }
     },
     created() {
       this.initServiceAddress();
+      this.getVersionInfo();
       this.getHeaderInfo();
       setInterval(() => {
         this.serviceUrls = API_URL;
@@ -148,6 +147,23 @@
         },
 
       /**
+       * 获取离线智能合约客户端的版本信息
+       */
+      getVersionInfo() {
+        const url =  LOCALHOST_API_URL;
+        const params = {"jsonrpc": "2.0", "method": "getVersionInfo", "params": [], "id": 5898};
+        axios.post(url, params)
+          .then((response) => {
+            if (response.data.hasOwnProperty("result")) {
+              this.versionInfo = response.data.result.version;
+            }
+          })
+          .catch((error) => {
+            console.log("getVersionInfo:" + error)
+          })
+      },
+
+      /**
        * 获取主网最新高度和本地高度
        */
       getHeaderInfo() {
@@ -248,7 +264,13 @@
     .w1200 {
       .left {
         width: 50%;
-        line-height: 60px;
+        .url {
+          font-size: 14px;
+          line-height: 34px;
+        }
+        .version {
+          font-size: 12px;
+        }
         @media screen and (max-width: 1000px) {
           width: 100%;
           margin: 0.5rem 0 0 0.5rem;

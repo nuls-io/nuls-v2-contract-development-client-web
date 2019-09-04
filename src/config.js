@@ -14,8 +14,8 @@ setInterval(() => {
   API_URL = localStorage.hasOwnProperty("urls") ? JSON.parse(localStorage.getItem("urls")).urls : 'http://apitn1.nulscan.io/';
 }, 500);
 //正式、测试网络的api
-//export let LOCALHOST_API_URL = "http://"+window.location.host+"/offlineSmartContract";
-export let LOCALHOST_API_URL = "http://127.0.0.1:8081/offlineSmartContract";
+export let LOCALHOST_API_URL = "http://"+window.location.host+"/offlineSmartContract";
+//export let LOCALHOST_API_URL = "http://127.0.0.1:8081/offlineSmartContract";
 export let PARAMETER = {jsonrpc: '2.0', method: '', params: [], id: 5898};
 
 

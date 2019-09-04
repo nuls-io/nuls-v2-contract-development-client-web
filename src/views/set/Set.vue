@@ -15,8 +15,7 @@
           <li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{$t('public.platform-desc')}}</li>
           <li v-show="RUN_PATTERN"><span>{{$t('public.operatingSystem')}}:</span>{{system}}</li>
           <li v-show="RUN_PATTERN"><span>{{$t('public.logInfo')}}:</span>{{logUrl}}</li>
-          <br/>
-          <li style="color:#F00"><span >{{$t('public.version')}}:</span>{{versionInfo}}</li>
+         <!-- <li style="color:#F00"><span >{{$t('public.version')}}:</span>{{versionInfo}}</li> -->
         </ul>
         <el-button type="success" @click="checkUpdate" v-show="RUN_PATTERN">{{$t('public.checkUpdates')}}</el-button>
       </div>
@@ -41,9 +40,8 @@
 </template>
 
 <script>
-  import axios from 'axios'
   import packages from './../../../package'
-  import {RUN_PATTERN,LOCALHOST_API_URL} from '@/config.js'
+  import {RUN_PATTERN} from '@/config.js'
 
   export default {
     data() {
@@ -55,7 +53,6 @@
         system: '',
         version: packages.version,//版本号
         RUN_PATTERN:RUN_PATTERN,//运行模式
-        versionInfo:'',
       };
     },
     created() {
@@ -114,20 +111,6 @@
           let num = str.lastIndexOf(temp);
           this.logUrl = str.slice(0, num) + '/wallet_web_log';
         }
-      },
-
-      getVersionInfo() {
-        const url =  LOCALHOST_API_URL;
-        const params = {"jsonrpc": "2.0", "method": "getVersionInfo", "params": [], "id": 5898};
-        axios.post(url, params)
-          .then((response) => {
-            if (response.data.hasOwnProperty("result")) {
-              this.versionInfo = response.data.result.version;
-            }
-          })
-          .catch((error) => {
-            console.log("getVersionInfo:" + error)
-          })
       },
     }
   }
