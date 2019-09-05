@@ -151,10 +151,10 @@ export async  function setPropertyAtBackEnd(property,value) {
     if (response.data.hasOwnProperty("result")) {
       return {success: response.data.result};
     } else {
-       return {success: false, data: response.error};
+       return {success: false, data: response.data.error.message};
      }
-}).catch((err) => {
-    console.log(err)
+}).catch((error) => {
+    return {success: false, data: error};
 });
 }
 

@@ -196,10 +196,10 @@
               if (response.success) {
                   // this.$message({message: this.$t('public.setsuccess'), type: 'error', duration: 1000});
               } else {
-                   this.$message({message: this.$t('public.setfail') , type: 'error', duration: 1000});
+                   this.$message({message: this.$t('public.setfail') +": "+response.data, type: 'error', duration: 1000});
               }
          }).catch((error) => {
-                this.$message({message: this.$t('public.setfail')+error , type: 'error', duration: 1000});
+                this.$message({message: this.$t('public.setfail')+": "+error , type: 'error', duration: 1000});
          });
       },
 
