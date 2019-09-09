@@ -473,7 +473,7 @@ const cn = {
 
   "contractType": {
     "undefined": "",
-    "0": "非Token",
+    "0": "普通合约",
     "1": "NRC20",
     "2": "NRC721"
   },

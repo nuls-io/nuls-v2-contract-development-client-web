@@ -146,6 +146,7 @@ export async function getNulsBalance(assetChainId = 2, assetId = 1, address) {
 export async  function setPropertyAtBackEnd(property,value) {
   PARAMETER.method = 'setProperty';
   PARAMETER.params = [property, value];
+  PARAMETER.id=5845;
   return axios.post(LOCALHOST_API_URL, PARAMETER)
       .then((response) => {
     if (response.data.hasOwnProperty("result")) {

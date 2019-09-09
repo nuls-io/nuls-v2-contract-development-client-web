@@ -136,6 +136,7 @@
             localStorage.setItem("urlsData", JSON.stringify(urlsData));
           } else {
             localStorage.setItem("urlsData", JSON.stringify(defaultData));
+            this.serviceUrls=defaultData[0].urls;
             for (let item of defaultData) {
               if (item.selection) {
                 localStorage.setItem("urls", JSON.stringify(item));
@@ -207,8 +208,8 @@
        * 获取地址网络信息
        **/
       async getAddressInfo() {
-        let addressInfos = addressInfo(1);
-        let addressList = addressInfo(0);
+        let addressInfos = addressInfo();
+        let addressList = addressInfo();
         if (addressInfos) {
           await this.$post('/', 'getAccount', [addressInfos.address], 'BottomBar')
             .then((response) => {

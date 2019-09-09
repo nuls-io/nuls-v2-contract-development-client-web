@@ -497,7 +497,7 @@ const en = {
 
   "contractType": {
     "undefined": "",
-    "0": "Non-Token",
+    "0": "General Contract",
     "1": "NRC20",
     "2": "NRC721"
   },

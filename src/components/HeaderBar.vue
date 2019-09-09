@@ -45,8 +45,10 @@
 </template>
 
 <script>
+import axios from 'axios'
   import logoSvg from './../assets/img/logo-beta.svg'
-  import {superLong, chainIdNumber, addressInfo} from '@/api/util'
+  import {superLong, chainID,chainIdNumber} from '@/api/util'
+import {PARAMETER,LOCALHOST_API_URL} from '@/config.js'
 
   export default {
     data() {
@@ -114,25 +116,38 @@
        * 获取账户列表
        */
       async getAddressList() {
-        this.addressList = await addressInfo();
-        if (this.addressList.length>0) {
-          for (let item  of this.addressList) {
-            item.addresss = superLong(item.address, 8);
+        let parameter={};
+        let addressList = [];
+        parameter.method = 'getAccountList';
+        parameter.params = [chainID(), 1, 10];
+        parameter.id=54898;
+        parameter.jsonrpc= '2.0';
+       await axios.post(LOCALHOST_API_URL, parameter).then((response) => {
+             if (response.data.hasOwnProperty('result')) {
+               addressList = response.data.result.list;
+             }
+          }).catch((err) => {
+            console.log(err)
+          });
+
+          if (addressList.length>0) {
+            for (let item  of addressList) {
+              item.addresss = superLong(item.address, 8);
+            }
+            this.defaultAddress = localStorage.getItem(chainIdNumber());
+           if(this.defaultAddress==''||this.defaultAddress==null){
+             this.$router.push({
+                   name: "address"
+             })
           }
-           this.defaultAddress = localStorage.getItem(chainIdNumber());
-         if(this.defaultAddress==''||this.defaultAddress==null){
-           this.$router.push({
-                 name: "address"
-           })
-        }
-        }else{
-        localStorage.removeItem(chainIdNumber());
-        this.defaultAddress ='';
-        this.$router.push({
-              name: "newAddress",
-              query: {'address': ''}
-          })
-        }
+          }else{
+          localStorage.removeItem(chainIdNumber());
+          this.defaultAddress ='';
+          this.$router.push({
+                name: "newAddress",
+                query: {'address': ''}
+            })
+          }
       },
 
       /**
