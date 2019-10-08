@@ -9,9 +9,9 @@ export const RUN_DEV = false;
 //运行模式（true:electron窗体模式，false:浏览器模式）
 export const RUN_PATTERN = false;
 //正式、测试网络的api
-export let API_URL = localStorage.hasOwnProperty("urls") ? JSON.parse(localStorage.getItem("urls")).urls : 'http://apitn1.nulscan.io/';
+export let API_URL = localStorage.hasOwnProperty("urls") ? JSON.parse(localStorage.getItem("urls")).urls : 'http://beta.public1.nuls.io/';
 setInterval(() => {
-  API_URL = localStorage.hasOwnProperty("urls") ? JSON.parse(localStorage.getItem("urls")).urls : 'http://apitn1.nulscan.io/';
+  API_URL = localStorage.hasOwnProperty("urls") ? JSON.parse(localStorage.getItem("urls")).urls : 'http://beta.public1.nuls.io/';
 }, 500);
 //正式、测试网络的api
 export let LOCALHOST_API_URL = "http://"+window.location.host+"/offlineSmartContract";
@@ -24,7 +24,7 @@ export const API_TIME = IS_DEV ? '29000' : '28000';
 //默认节点服务列表
 //默认节点服务列表
 export const defaultData = [
-  {name: 'Official',chainId:10,assetId:1,decimals:8,chainName:'tNULS', urls: 'http://apitn1.nulscan.io', delay: '10ms', selection: false, isDelete: false},
+  {name: 'Official',chainId:10,assetId:1,decimals:8,chainName:'tNULS', urls: 'http://beta.public1.nuls.io', delay: '10ms', selection: false, isDelete: false},
 ];
 
 //默认服务节点地址

@@ -48,7 +48,7 @@
 import axios from 'axios'
   import logoSvg from './../assets/img/logo-beta.svg'
   import {superLong, chainID,chainIdNumber} from '@/api/util'
-import {PARAMETER,LOCALHOST_API_URL} from '@/config.js'
+import {LOCALHOST_API_URL} from '@/config.js'
 
   export default {
     data() {

@@ -50,9 +50,24 @@
     },
     watch: {},
     methods: {
-
        async initServiceAddress() {
           let isUrl = true;//是否有可用连接
+          let isClear=true;//默认的节点信息是否更新
+         if (localStorage.hasOwnProperty('urlsData')) {
+            for (let item of JSON.parse(localStorage.getItem("urlsData"))) {
+            //web缓存中的节点信息与默认配置的相同，说明配置信息未更改，缓存信息依然有效
+                if(item.urls ==defaultData[0].urls && item.delay ==defaultData[0].delay && item.chainId==defaultData[0].chainId &&item.chainName==defaultData[0].chainName ){
+                    isClear=false;
+                    break;
+                }
+            }
+             console.log("是否更新："+isClear);
+            if(isClear){
+             localStorage.removeItem('urlsData');
+             localStorage.removeItem("urls");
+            }
+         }
+
           if (localStorage.hasOwnProperty('urlsData')) {
             let newUrlsData = [];
             let selectionUrl = '';
@@ -169,7 +184,6 @@
        */
       getHeaderInfo() {
         const url =  API_URL;
-       // this.serviceUrls.urls=API_URL;
         this.serviceUrls= API_URL;
         const params = {"jsonrpc": "2.0", "method": "getInfo", "params": [chainID()], "id": 5898};
         axios.post(url, params)
