@@ -61,7 +61,6 @@
                     break;
                 }
             }
-             console.log("是否更新："+isClear);
             if(isClear){
              localStorage.removeItem('urlsData');
              localStorage.removeItem("urls");
