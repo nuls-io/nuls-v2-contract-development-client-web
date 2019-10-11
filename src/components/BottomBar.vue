@@ -6,8 +6,9 @@
           <div class="url">
             {{$t('bottom.serviceNode')}}: <u class="click" @click="toUrl('nodeService')">{{serviceUrls}}</u>
           </div>
-          <div class="version">
-            <span>{{$t('public.version')}}: </span>{{versionInfo}}
+          <div :class="{'version_color':isNew!='Y'}" class="version">
+            <span>{{$t('public.version')}}: </span>
+            {{versionInfo}}
           </div>
         </div>
         <div class="right fr">
@@ -32,6 +33,7 @@
         heightInfo: [],//高度信息
         serviceUrls:'', //服务节点
         versionInfo:'',//版本信息
+        isNew:'',//是否最新版本
       }
     },
     created() {
@@ -171,6 +173,7 @@
           .then((response) => {
             if (response.data.hasOwnProperty("result")) {
               this.versionInfo = response.data.result.version;
+              this.isNew=response.data.result.isNew;
             }
           })
           .catch((error) => {
@@ -284,6 +287,12 @@
         }
         .version {
           font-size: 12px;
+        }
+        .version_color{
+          color:#F00;
+              span {
+                  color:#000 !important;
+          }
         }
         @media screen and (max-width: 1000px) {
           width: 100%;
