@@ -58,11 +58,11 @@
          if (localStorage.hasOwnProperty('urlsData')) {
             for (let item of JSON.parse(localStorage.getItem("urlsData"))) {
             //web缓存中的节点信息与默认配置的相同，说明配置信息未更改，缓存信息依然有效
-                if(item.urls ==defaultData[0].urls && item.delay ==defaultData[0].delay && item.chainId==defaultData[0].chainId &&item.chainName==defaultData[0].chainName ){
-                    isClear=false;
-                    break;
-                }
-            }
+                 if(item.name=="Official" && item.urls ==defaultData[0].urls){
+                     isClear=false;
+                     break;
+                 }
+             }
             if(isClear){
              localStorage.removeItem('urlsData');
              localStorage.removeItem("urls");

@@ -24,10 +24,10 @@ export const API_TIME = IS_DEV ? '29000' : '28000';
 //默认节点服务列表
 //默认节点服务列表
 export const defaultData = [
-  {name: 'Official',chainId:10,assetId:1,decimals:8,chainName:'tNULS', urls: 'http://beta.public1.nuls.io', delay: '10ms', selection: false, isDelete: false},
+  {name: 'Official',chainId:2,assetId:1,decimals:8,chainName:'nuls2', urls: 'http://beta.public1.nuls.io', delay: '10ms', selection: false, isDelete: false},
 ];
 
 //默认服务节点地址
-export const defaultUrl ={name: 'Official',chainId:2,assetId:1,decimals:8,chainName:'tNULS', urls: 'https://beta.wallet.nuls.io/api', delay: '10ms', selection: true, isDelete: false};
+export const defaultUrl ={name: 'Official',chainId:2,assetId:1,decimals:8,chainName:'nuls2', urls: 'https://beta.wallet.nuls.io/api', delay: '10ms', selection: true, isDelete: false};
 //默认浏览器地址（跳转地址）
 export const explorerUrl = 'http://beta.nulscan.io/';
