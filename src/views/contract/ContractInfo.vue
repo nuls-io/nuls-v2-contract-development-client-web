@@ -210,8 +210,10 @@
                   var methodsFilter=[];
                   var methods =response.result.methods;
                    for(var i=0;i<methods.length;i++){
-                       if(methods[i].name!='<init>' && methods[i].name!='_payable'){
-                          methodsFilter.push(methods[i]);
+                       if(methods[i].name!='<init>'){
+                            if( methods[i].name!='_payable' ||(methods[i].name=='_payable' && methods[i].params.length==0)){
+                                  methodsFilter.push(methods[i]);
+                            }
                        }
                     }
                     return methodsFilter;
