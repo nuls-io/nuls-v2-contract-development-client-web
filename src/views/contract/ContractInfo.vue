@@ -44,27 +44,33 @@
           <el-table :data="contractTxData" stripe border style="width: 100%;margin-top: 14px">
             <el-table-column label="" width="30">
             </el-table-column>
-            <el-table-column prop="height" :label="$t('public.height')" width="100" align="left">
+            <el-table-column prop="height" :label="$t('public.height')" width="80" align="left">
               <template slot-scope="scope">
                 <span class="cursor-p click">{{ scope.row.blockHeight }}</span>
               </template>
             </el-table-column>
-            <el-table-column prop="height" :label="$t('contractInfo.contractInfo5')" width="140" align="left">
+            <el-table-column prop="height" :label="$t('contractInfo.contractInfo5')" width="100" align="left">
               <template slot-scope="scope"><span>{{ $t('type.'+scope.row.type) }}</span></template>
             </el-table-column>
             <el-table-column prop="height" :label="$t('contractInfo.contractInfo6')" width="180" align="left">
               <template slot-scope="scope"><span>{{scope.row.contractMethod}}</span></template>
             </el-table-column>
-            <el-table-column label="TXID" min-width="280" align="left">
+             <el-table-column prop="height" :label="$t('contractInfo.contractInfo15')" width="80" align="left">
+                <template slot-scope="scope"><span class="click" @click="showContractArgs(scope.row.txHash,scope.row.type)">View</span></template>
+             </el-table-column>
+            <el-table-column label="TXID" min-width="300" align="left">
               <template slot-scope="scope">
                 <span class="cursor-p click td" @click="toUrl('transactionInfo',scope.row.txHash,1)">
                   {{ scope.row.txHashs }}
                 </span>
               </template>
             </el-table-column>
-            <el-table-column prop="time" :label="$t('public.time')" width="180" align="left">
+             <el-table-column prop="height" :label="$t('contractInfo.contractInfo16')" width="80" align="left">
+                <template slot-scope="scope"><span class="click" @click="showContractResult(scope.row.txHash)">View</span></template>
+             </el-table-column>
+            <el-table-column prop="time" :label="$t('public.time')" width="160" align="left">
             </el-table-column>
-            <el-table-column :label="$t('public.fee')" width="180" align="left">
+            <el-table-column :label="$t('public.fee')" width="140" align="left">
               <template slot-scope="scope">{{scope.row.fees}}</template>
             </el-table-column>
           </el-table>
@@ -110,7 +116,31 @@
           </div>
         </el-tab-pane>
       </el-tabs>
+      <!-- 展示合约参数 -->
+    <el-dialog title="" :visible.sync="viewArgsDialog" class="dialog_tran">
+      <div class="dialog-info scroll">
+          <json-viewer
+                  :value="contractArgs"
+                  :expand-depth="5"
+                  copyable
+                  boxed
+                  sort
+          ></json-viewer>
+      </div>
+    </el-dialog>
 
+     <!-- 展示合约结果 -->
+      <el-dialog title="" :visible.sync="viewResultDialog" class="dialog_tran">
+        <div class="dialog-info scroll">
+            <json-viewer
+                    :value="contractResult"
+                    :expand-depth="5"
+                    copyable
+                    boxed
+                    sort
+            ></json-viewer>
+        </div>
+      </el-dialog>
     </div>
     <Password ref="password" @passwordSubmit="passSubmit"></Password>
   </div>
@@ -123,9 +153,11 @@
   import BackBar from '@/components/BackBar'
  // import SelectBar from '@/components/SelectBar';
   import Call from './Call'
-  import {timesDecimals, getLocalTime, superLong, connectToExplorer,chainIdNumber} from '@/api/util'
+  import {timesDecimals, getLocalTime, superLong, connectToExplorer,chainIdNumber,chainID} from '@/api/util'
   import {getNulsBalance, inputsOrOutputs, validateAndBroadcast} from '@/api/requestData'
   import Password from '@/components/PasswordBar'
+  import {LOCALHOST_API_URL, PARAMETER} from '@/config.js'
+  import axios from 'axios'
 
   export default {
     data() {
@@ -152,7 +184,10 @@
         modelData: [],//合约方法列表
         decimals:0,//合约精度系数
         defaultAddress: '',//默认地址
-
+        viewArgsDialog: false, //合约参数数据显示
+        viewResultDialog: false, //合约结果数据显示
+        contractArgs:'',//合约参数
+        contractResult:'',//合约结果
       };
     },
     created() {
@@ -174,7 +209,7 @@
     components: {
       BackBar,
       Call,
-      Password
+      Password,
     },
     watch: {
       addressInfo(val, old) {
@@ -390,6 +425,40 @@
         } else {
           connectToExplorer(name,params)
         }
+      },
+
+      showContractArgs(txHash,type){
+        PARAMETER.method = 'getContractExecuteArgsInfo';
+        PARAMETER.params =[chainID(),txHash, type];
+        axios.post(LOCALHOST_API_URL, PARAMETER)
+          .then((response) => {
+            if (response.data.hasOwnProperty("result")) {
+              this.contractArgs = response.data.result.args;
+            } else {
+              this.contractArgs =this.$t('transaciontInfo.info1');
+            }
+              this.viewArgsDialog = true;
+          })
+          .catch((error) => {
+            this.$message({message: this.$t('transaciontInfo.info1') + error, type: 'error', duration: 2000});
+          });
+      },
+
+      showContractResult(txHash){
+        PARAMETER.method = 'getContractExecuteResultInfo';
+        PARAMETER.params =[chainID(),txHash];
+        axios.post(LOCALHOST_API_URL, PARAMETER)
+          .then((response) => {
+            if (response.data.hasOwnProperty("result")) {
+              this.contractResult = response.data.result.contractResult;
+            } else {
+              this.contractResult =this.$t('transaciontInfo.info1');
+            }
+           this.viewResultDialog = true;
+          })
+          .catch((error) => {
+            this.$message({message: this.$t('transaciontInfo.info1') + error, type: 'error', duration: 2000});
+          });
       },
 
     }

@@ -772,7 +772,6 @@ const cn = {
     "deploy24":"合约部署成功，合约地址：",
     "deploy25":"合约部署失败，错误信息：",
     "deploy":"deploy",
-
   },
 
   "codeInfo":{
@@ -807,6 +806,12 @@ const cn = {
     "contractInfo12":"获取合约交易列表异常:",
     "contractInfo13":"验证删除合约失败:",
     "contractInfo14":"contractInfo",
+    "contractInfo15":"合约参数",
+    "contractInfo16":"合约结果",
+  },
+
+  "transaciontInfo":{
+    "info1":"查询失败",
   },
 
   "bottom": {
