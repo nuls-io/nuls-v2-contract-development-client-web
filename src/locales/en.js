@@ -392,6 +392,7 @@ const en = {
     "tab8": "Cause freezing",
     "tab9": "Balance",
     "tab10": "State",
+    "tab12":"Complete backup",
   },
 
   "type": {

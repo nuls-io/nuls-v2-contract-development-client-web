@@ -426,7 +426,7 @@
         let newArgs = getArgs(this.deployForm.parameterList);
         if (newArgs.allParameter) {
           PARAMETER.method = 'createContract';
-          PARAMETER.params = [chainID(), 2, 1, this.addressInfo.address, password, this.deployForm.hex, this.deployForm.alias, newArgs.args, this.deployForm.gas, this.deployForm.price, this.deployForm.addtion];
+          PARAMETER.params = [chainID(), chainID(), 1, this.addressInfo.address, password, this.deployForm.hex, this.deployForm.alias, newArgs.args, this.deployForm.gas, this.deployForm.price, this.deployForm.addtion];
            axios.post(LOCALHOST_API_URL, PARAMETER)
             .then((response) => {
               if (response.data.hasOwnProperty('result')) {

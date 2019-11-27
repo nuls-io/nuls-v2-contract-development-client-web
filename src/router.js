@@ -42,6 +42,11 @@ export default new Router({
       component: resolve => require(['@/views/users/ImportAddress.vue'], resolve)
     },
     {
+      path: '/backupsAddress',
+      name: 'backupsAddress',
+      component: resolve => require(['@/views/users/BackupsAddress.vue'], resolve)
+    },
+    {
       path: '/setAlias',
       name: 'setAlias',
       component: resolve => require(['@/views/users/SetAlias.vue'], resolve)

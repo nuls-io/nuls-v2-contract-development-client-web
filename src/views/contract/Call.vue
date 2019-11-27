@@ -388,10 +388,10 @@
       if (this.callForm.parameterList.length > 0) {
           let newArgs = getArgs(this.callForm.parameterList);
           if (newArgs.allParameter) {
-            this.callContract(2, 1, this.addressInfo.address, password, this.contractAddress, Number(Times(this.callForm.values, 100000000)),this.selectionData.name, this.selectionData.desc, newArgs.args, this.callForm.gas, this.callForm.price, this.callForm.addtion);
+            this.callContract(chainID(), 1, this.addressInfo.address, password, this.contractAddress, Number(Times(this.callForm.values, 100000000)),this.selectionData.name, this.selectionData.desc, newArgs.args, this.callForm.gas, this.callForm.price, this.callForm.addtion);
           }
       }else{
-       this.callContract(2, 1, this.addressInfo.address, password, this.contractAddress, Number(Times(this.callForm.values, 100000000)),this.selectionData.name, this.selectionData.desc, newArgs, this.callForm.gas, this.callForm.price, this.callForm.addtion);
+       this.callContract(chainID(), 1, this.addressInfo.address, password, this.contractAddress, Number(Times(this.callForm.values, 100000000)),this.selectionData.name, this.selectionData.desc, newArgs, this.callForm.gas, this.callForm.price, this.callForm.addtion);
       }
       },
 

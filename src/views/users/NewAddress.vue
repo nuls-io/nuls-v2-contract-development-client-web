@@ -1,117 +1,74 @@
 <template>
-  <div class="new_address bg-gray">
-    <div class="bg-white">
-      <div class="w1200">
-        <BackBar :backTitle="$t('address.address0')" v-show="ifAddressInfo"></BackBar>
-        <h3 class="title">
-          <font v-if="!isBackups">{{$t('newAddress.newAddress0')}} </font>
-          <font v-else>{{$t('newAddress.newAddress1')}} </font>
-          <font v-show="newAddressInfo.address">: {{newAddressInfo.address}}
-            <i class="iconfont iconfuzhi clicks" @click="copy(newAddressInfo.address)"></i>
-          </font>
-        </h3>
-      </div>
-    </div>
-    <div class="new w1200 mt_20 bg-white">
-      <ul class="step" v-show="false">
-        <li>
-          <p class="dotted Ndotted"></p>
-        </li>
-        <li>
-          <p class="ico"><i class="el-icon-view Ncolor"></i></p>
-          <h6 class="Ncolor">{{$t('newAddress.newAddress2')}}</h6>
-        </li>
-        <li>
-          <p class="dotted" :class="!isFirst ? 'Ndotted':''"></p>
-        </li>
-        <li>
-          <p class="ico"><i class="el-icon-location-outline" :class="!isFirst ? 'Ncolor':''"></i></p>
-          <h6 :class="!isFirst ? 'Ncolor':''">{{$t('newAddress.newAddress3')}}</h6>
-        </li>
-        <li>
-          <p class="dotted"></p>
-        </li>
-      </ul>
-      <div class="cb"></div>
-
-      <div class="w630" v-show="isFirst">
-        <div class="tip bg-gray">
-          <p><i></i>{{$t('newAddress.newAddress4')}}</p>
-          <!-- <p><i></i>{{$t('newAddress.newAddress5')}}</p> -->
-        </div>
-        <div class="cb"></div>
-        <el-form :model="passwordForm" status-icon :rules="passwordRules" ref="passwordForm" class="mb_20">
-          <el-form-item :label="$t('newAddress.newAddress6')" prop="pass">
-            <el-input type="password" v-model="passwordForm.pass" autocomplete="off"></el-input>
-          </el-form-item>
-          <el-form-item :label="$t('newAddress.newAddress7')" prop="checkPass">
-            <el-input type="password" v-model="passwordForm.checkPass" autocomplete="off"></el-input>
-          </el-form-item>
-          <el-form-item label="" prop="agreement">
-            <el-checkbox-group v-model="passwordForm.agreement">
-              <el-checkbox :label="$t('newAddress.newAddress8')" name="agreement"></el-checkbox>
-            </el-checkbox-group>
-          </el-form-item>
-          <el-form-item class="form-next">
-            <el-button type="success" @click="submitPasswordForm('passwordForm')" :disabled="!passwordForm.agreement">
-              {{$t('newAddress.newAddress10')}}
-            </el-button>
-            <el-button type="text" @click="toUrl('importAddress')">{{$t('newAddress.newAddress11')}}</el-button>
-          </el-form-item>
-        </el-form>
-      </div>
-
-      <div class="step_tow w630" v-show="!isFirst">
-        <h3 class="title" v-show="false">
-          {{$t('newAddress.newAddress12')}}：
-          <span>{{newAddressInfo.address}}</span>
-          <i class="iconfont iconfuzhi clicks" @click="copy(newAddressInfo.address)"></i>
-        </h3>
-        <div class="tip bg-gray">
-          <p>{{$t('newAddress.newAddress13')}}</p>
-          <!--  <p>{{$t('newAddress.newAddress14')}}</p>
-            <p>{{$t('newAddress.newAddress15')}}</p>-->
-        </div>
-
-        <div class="btn mb_20">
-          <el-button type="success" @click="backKeystore" v-show="false">{{$t('newAddress.newAddress16')}}
-          </el-button>
-          <el-button type="text" @click="backKey">{{$t('newAddress.newAddress17')}}</el-button>
-          <el-button type="info" @click="goWallet" v-show="false">{{$t('newAddress.newAddress18')}}</el-button>
-
-          <el-button type="text" @click="toUrl('contract')">{{$t('deploy.deploy22')}}</el-button>
-        </div>
-      </div>
-
+  <div class="import-address bg-gray">
+    <div class="bg-white"> </div>
+    <div style="">
+      <el-tabs v-model="activeName" @tab-click="handleClick" class="new_import w1200">
+        <el-tab-pane :label="$t('importAddress.importAddress3')" name="keyImport">
+          <div class="tab w1200 mt_30">
+            <el-form :model="importKeyForm" :rules="importKeyRules" ref="importKeyForm" status-icon class="import-form w630">
+              <el-form-item :label="$t('importAddress.importAddress5')" prop="keys">
+                <el-input type="textarea" v-model.trim="importKeyForm.keys" autocomplete="off"></el-input>
+              </el-form-item>
+              <el-form-item :label="$t('newAddress.newAddress6')" prop="pass">
+                <el-input v-model="importKeyForm.pass" type="password" autocomplete="off"></el-input>
+              </el-form-item>
+              <el-form-item :label="$t('newAddress.newAddress7')" prop="checkPass">
+                <el-input v-model="importKeyForm.checkPass" type="password" autocomplete="off"></el-input>
+              </el-form-item>
+              <el-form-item class="form-bnt">
+                <el-button type="success" @click="keyImport('importKeyForm')">{{$t('importAddress.importAddress8')}}
+                </el-button>
+              </el-form-item>
+            </el-form>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane :label="$t('importAddress.importAddress0')" name="newAddress" >
+          <div class="new_address">
+            <el-form :model="passwordForm" status-icon :rules="passwordRules" ref="passwordForm"
+                     class="w630">
+              <el-form-item :label="$t('newAddress.newAddress6')" prop="pass">
+                <el-input type="password" v-model="passwordForm.pass" autocomplete="off"></el-input>
+              </el-form-item>
+              <el-form-item :label="$t('newAddress.newAddress7')" prop="checkPass">
+                <el-input type="password" v-model="passwordForm.checkPass" autocomplete="off"></el-input>
+              </el-form-item>
+              <el-form-item label="" prop="agreement">
+                <el-checkbox-group v-model="passwordForm.agreement">
+                  <el-checkbox :label="$t('newAddress.newAddress8')" name="agreement"></el-checkbox>
+                </el-checkbox-group>
+              </el-form-item>
+              <el-form-item class="form-bnt">
+                 <el-button type="success" @click="submitPasswordForm('passwordForm')" :disabled="!passwordForm.agreement">
+                   {{$t('newAddress.newAddress10')}}
+                 </el-button>
+              </el-form-item>
+            </el-form>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
     </div>
     <Password ref="password" @passwordSubmit="passSubmit">
     </Password>
-    <el-dialog :title="$t('newAddress.newAddress19')" width="40%"
-               :visible.sync="keyDialog"
-               :close-on-click-modal="false"
-               :close-on-press-escape="false"
-    >
-      <span>{{$t('newAddress.newAddress20')}}</span>
-      <p class="bg-white">
-        {{newAddressInfo.pri}}
-      </p>
-      <span slot="footer" class="dialog-footer">
-        <el-button type="success" @click="copy(newAddressInfo.pri)">{{$t('newAddress.newAddress21')}}</el-button>
-      </span>
-    </el-dialog>
   </div>
 </template>
 
 <script>
  // import nuls from 'nuls-sdk-js'
   import Password from '@/components/PasswordBar'
-  import BackBar from '@/components/BackBar'
+// import BackBar from '@/components/BackBar'
   import {copys, chainID, chainIdNumber, addressInfo, defaultAddressInfo} from '@/api/util'
   import {RUN_PATTERN, LOCALHOST_API_URL, PARAMETER} from '@/config.js'
   import axios from 'axios'
 
   export default {
     data() {
+      let checkKey = (rule, value, callback) => {
+        if (value === '') {
+          callback(new Error(this.$t('importAddress.importAddress9')));
+        } else {
+          callback();
+        }
+      };
       let validatePass = (rule, value, callback) => {
         let patrn = /^(?![\d]+$)(?![a-zA-Z]+$)(?![^\da-zA-Z]+$).{8,20}$/;
         if (value === '') {
@@ -136,7 +93,18 @@
           callback();
         }
       };
+      let validateCheckPass = (rule, value, callback) => {
+        if (value === '') {
+         // callback(new Error(this.$t('importAddress.importAddress12')));
+           callback();
+        } else if (value !== this.importKeyForm.pass) {
+          callback(new Error(this.$t('importAddress.importAddress13')));
+        } else {
+          callback();
+        }
+      };
       return {
+        activeName: 'keyImport',//tab选中
         isFirst: true,//第一步
         isBackups: false,//备份账户
         keyDialog: false, //key弹框
@@ -145,6 +113,11 @@
           pass: '',
           checkPass: '',
           agreement: true,
+        },
+        importKeyForm: {
+          key: '',
+          pass: '',
+          checkPass: ''
         },
         passwordRules: {
           pass: [
@@ -155,6 +128,17 @@
           ],
           agreement: [
             {required: true, message: this.$t('newAddress.newAddress29'), trigger: 'change'}
+          ]
+        },
+        importKeyRules: {
+          pass: [
+            {validator: validatePass, trigger: ['blur', 'change']}
+          ],
+          checkPass: [
+            {validator: validateCheckPass, trigger: ['blur', 'change']}
+          ],
+          key: [
+            {validator: checkKey, trigger: ['blur', 'change']}
           ]
         },
         newAddressInfo: {}, //新建的地址信息
@@ -174,11 +158,58 @@
     mounted() {
     },
     components: {
-      Password,
-      BackBar
+      Password
     },
     methods: {
 
+      /**
+       * @disc: tab选择
+       * @params: tab
+       * @date: 2019-08-31 16:18
+       * @author: Wave
+       */
+      handleClick(tab) {
+         if (tab.name === 'keyImport') {
+          this.newAddressInfo = {};
+          this.$refs['importKeyForm'].resetFields();
+        } else {
+          this.importAddressInfo = {};
+          this.$refs['passwordForm'].resetFields();
+        }
+      },
+      /**
+       * 私钥导入
+       * @param formName
+       */
+      keyImport(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            this.importWallet()
+          } else {
+            return false;
+          }
+        });
+      },
+      /**
+       * 导入私钥方法
+       */
+      importWallet() {
+        PARAMETER.method = 'importAccountByPriKey';
+        PARAMETER.params = [chainID(), this.importKeyForm.keys, this.importKeyForm.pass, true];
+        axios.post(LOCALHOST_API_URL, PARAMETER)
+          .then((response) => {
+            if (response.data.hasOwnProperty('result')) {
+              let newImportAddressInfo = defaultAddressInfo;
+              newImportAddressInfo.address = response.data.result.address;
+               localStorage.setItem(chainIdNumber(), newImportAddressInfo.address);
+              this.toUrl('address')
+            }else{
+                this.$message({message: this.$t('importAddress.importAddress18')+response.data.error.message, type: 'error', duration: 1000});
+            }
+          }).catch((err) => {
+          console.log(err)
+        });
+      },
       /**
        * 创建地址
        * @param formName
@@ -193,9 +224,13 @@
                 if (response.data.hasOwnProperty('result')) {
                   let newAddressInfo = defaultAddressInfo;
                   newAddressInfo.address = response.data.result.address;
+                  newAddressInfo.pri = response.data.result.prikey;
                   this.newAddressInfo = newAddressInfo;
                    localStorage.setItem(chainIdNumber(), newAddressInfo.address);
-                  this.isFirst = false;
+                  this.$router.push({
+                      name: "backupsAddress",
+                      query: {'backAddressInfo': newAddressInfo}
+                  })
                 }else{
                 this.$message({message: this.$t('newAddress.newAddress30')+response.data.error.message, type: 'error', duration: 1000});
                 }
@@ -290,61 +325,67 @@
 <style lang="less">
   @import "./../../assets/css/style";
 
-  .new_address {
-    .new {
-      border: @BD1;
-      .step {
-        height: 50px;
-        margin: 100px 140px 0 140px;
-        li {
-          float: left;
-          width: 20%;
-          height: 50px;
+  .import-address {
+    .bg-white {
+      height: 130px;
+    }
+    .new_import {
+      margin: -90px auto 100px;
+      .el-tabs__header {
+        margin: 0;
+        .el-tabs__nav-wrap {
           text-align: center;
-          .dotted {
-            margin: 20px 0 0 0;
-            border-bottom: 2px dotted @Dcolour;
+          &:after {
+            height: 1px;
           }
-          .Ndotted {
-            border-bottom-color: @Ncolour;
-          }
-          .Ncolor {
-            color: @Ncolour;
-          }
-          .ico {
-            i {
-              font-size: 30px;
+        }
+        .el-tabs__nav-scroll {
+          .el-tabs__nav {
+            float: none;
+            .el-tabs__active-bar {
+              height: 0;
+            }
+            .el-tabs__item {
+              text-align: center;
+              padding: 0 25px;
+              margin: 10px 20px 20px;
+              border-radius: 4px;
+              &:hover {
+                background: linear-gradient(to right, #67C23A, #67C23A);
+                color: #FFFFFF;
+              }
+            }
+            .is-active {
+              background: linear-gradient(to right, #67C23A, #67C23A);
+              color: #FFFFFF;
             }
           }
         }
       }
-      .tip {
-        margin: 40px auto;
-        padding: 20px 30px;
-        p {
-          i {
-            width: 5px;
-            height: 5px;
-            display: block;
-            float: left;
-            margin: 9px 10px 0 0;
-            border-radius: 5px;
-            background: #000000;
+      .el-tabs__content {
+        background-color: #FFFFFF;
+        .upload_keystore {
+          padding: 100px 0 100px 0;
+          border: 1px solid #E4E7ED;
+        }
+
+        .form-bnt {
+          text-align: center;
+          .el-button--success {
+            width: 190px;
           }
         }
-      }
-      .step_tow {
-        .title {
-          height: 30px;
-          line-height: 30px;
-          margin: 40px auto 0;
+
+        .tab {
+          border: 1px solid #E4E7ED;
+          .import-form {
+            margin: 60px auto 100px;
+          }
         }
-        .tip {
-          margin: 40px auto;
-        }
-        .btn {
-          .el-button--info {
-            margin: 50px 0 20px 0 !important;
+        .new_address {
+          border: 1px solid #E4E7ED;
+          .w630 {
+            margin: 60px auto 100px;
           }
         }
       }
