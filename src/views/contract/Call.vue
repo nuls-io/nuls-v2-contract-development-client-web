@@ -58,7 +58,6 @@
   import {getArgs, Times, chainID,chainIdNumber} from '@/api/util'
   import {LOCALHOST_API_URL, PARAMETER} from '@/config.js'
   import axios from 'axios'
-  import {post} from '@/api/https'
 
   export default {
     data() {
@@ -272,12 +271,15 @@
        * @param args
        */
       async validateContractCall(sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args,callback) {
-      return await post('/','validateContractCall',[sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args])
+      //return await post('/','validateContractCall',[sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args])
+          PARAMETER.method = 'validateContractCall';
+          PARAMETER.params =  [chainID(),sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args];
+          return axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            if (response.result.success) {
+            if (response.data.result.success) {
               this.imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args,callback);
             } else {
-              this.$message({message: this.$t('call.call6') + response.result.msg, type: 'error', duration: 2000});
+              this.$message({message: this.$t('call.call6') + response.data.error.message, type: 'error', duration: 2000});
             }
           })
           .catch((error) => {
@@ -295,10 +297,13 @@
        * @param args
        */
       async imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args,callback) {
-         return await post('/','imputedContractCallGas',[sender, value, contractAddress, methodName, methodDesc, args])
+          // return await post('/','imputedContractCallGas',[sender, value, contractAddress, methodName, methodDesc, args])
+          PARAMETER.method = 'imputedContractCallGas';
+          PARAMETER.params =  [chainID(),sender, value, contractAddress, methodName, methodDesc, args];
+          return axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            if (response.hasOwnProperty("result")) {
-              this.callForm.gas = response.result.gasLimit;
+            if (response.data.hasOwnProperty("result")) {
+              this.callForm.gas = response.data.result.gasLimit;
               let contractConstructorArgsTypes = this.getContractMethodArgsTypes(contractAddress, methodName);
               let newArgs = utils.twoDimensionalArray(args, contractConstructorArgsTypes);
               this.contractCallData = {
@@ -316,7 +321,7 @@
                 callback();
               }
             } else {
-              this.$message({message: this.$t('call.call4') + response, type: 'error', duration: 2000});
+              this.$message({message: this.$t('call.call4') + response.data.error.message, type: 'error', duration: 2000});
             }
           })
           .catch((error) => {
