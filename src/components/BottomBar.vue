@@ -47,7 +47,7 @@
     mounted() {
       setInterval(() => {
         this.getHeaderInfo();
-        this.getAddressInfo();
+       // this.getAddressInfo();
       }, 10000);
     },
     watch: {},

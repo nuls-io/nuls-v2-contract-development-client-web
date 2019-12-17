@@ -109,6 +109,15 @@ export async function addressInfo() {
 }
 
 /**
+ * 获取地址的智能合约列表
+ * @param address 账户地址
+ * @returns {*}
+ */
+export function myContractList(address) {
+  let contractList = localStorage.hasOwnProperty(address) ? JSON.parse(localStorage.getItem(address)) : [];
+  return contractList
+}
+/**
  * 超长数字显示
  * @param nu
  * @param powerNu
