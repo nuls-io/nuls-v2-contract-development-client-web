@@ -201,6 +201,7 @@
             if (response.data.hasOwnProperty('result')) {
               if(this.selectAddressInfo.address== localStorage.getItem(chainIdNumber())){
                  localStorage.removeItem(chainIdNumber());
+                 localStorage.removeItem(this.selectAddressInfo.address);
               }
               this.getAddressList();
             }else{
