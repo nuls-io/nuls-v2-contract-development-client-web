@@ -141,7 +141,9 @@
     },
     created() {
       this.addressInfo.address = localStorage.getItem(chainIdNumber());
-      this.getBalanceByAddress(chainID(), 1, this.addressInfo.address);
+      if(this.addressInfo.address){
+        this.getBalanceByAddress(chainID(), 1, this.addressInfo.address);
+      }
     },
     mounted() {
       setInterval(() => {
@@ -276,9 +278,9 @@
           PARAMETER.params =  [chainID(),sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args];
           return axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            if (response.data.result.success) {
-              this.imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args,callback);
-            } else {
+            if(response.data.hasOwnProperty("result") && response.data.result.success){
+               this.imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args,callback);
+            }else {
               this.$message({message: this.$t('call.call6') + response.data.error.message, type: 'error', duration: 2000});
             }
           })

@@ -134,6 +134,9 @@
     },
     created() {
       this.addressInfo.address = localStorage.getItem(chainIdNumber());
+      if(!this.addressInfo.address){
+         this.$message({message: this.$t('error.ac_0052'), type: 'error', duration: 1000});
+      }
       this.myCollectionList=myContractList(this.addressInfo.address);
       this.defaultAddress = localStorage.getItem(chainIdNumber());
     },
@@ -245,7 +248,7 @@
               this.myContractData = response.result.list;
               this.pageTotal = response.result.totalCount;
             } else {
-              this.$message({message: this.$t('contract.contract11') + response.error, type: 'error', duration: 1000});
+              this.$message({message: this.$t('contract.contract11') + response.error.message, type: 'error', duration: 1000});
             }
           })
           .catch((error) => {
@@ -287,7 +290,7 @@
                 }
               } else {
                 this.$message({
-                  message: this.$t('contract.contract13') + response.error,
+                  message: this.$t('contract.contract13') + response.error.message,
                   type: 'error',
                   duration: 1000
                 });
