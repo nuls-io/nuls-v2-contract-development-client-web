@@ -118,6 +118,7 @@ import {LOCALHOST_API_URL} from '@/config.js'
       async getAddressList() {
         let parameter={};
         let addressList = [];
+        let isExist=false;
         parameter.method = 'getAccountList';
         parameter.params = [chainID(), 1, 10];
         parameter.id=54898;
@@ -131,11 +132,18 @@ import {LOCALHOST_API_URL} from '@/config.js'
           });
 
           if (addressList.length>0) {
+            this.defaultAddress = localStorage.getItem(chainIdNumber());
             for (let item  of addressList) {
               item.addresss = superLong(item.address, 8);
+              if(item.addresss == this.defaultAddress){
+                isExist=true;
+              }
             }
-            this.defaultAddress = localStorage.getItem(chainIdNumber());
-           if(this.defaultAddress==''||this.defaultAddress==null){
+            if(!isExist){
+                localStorage.removeItem(chainIdNumber());
+                this.defaultAddress ='';
+            }
+           if(this.defaultAddress==''||this.defaultAddress==null||!isExist){
              this.$router.push({
                    name: "address"
              })
