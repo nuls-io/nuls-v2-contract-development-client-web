@@ -1,5 +1,7 @@
-import {post} from './https'
+import {post,localhostPost} from './https'
 import {Plus, chainID} from './util'
+import {LOCALHOST_API_URL, PARAMETER} from './../config.js'
+import axios from 'axios'
 
 /**
  * 判断是否为主网
@@ -138,6 +140,26 @@ export async function getNulsBalance(assetChainId = 2, assetId = 1, address) {
 }
 
 /**
+ *  设置后台服务的API模块地址
+ * @param password
+ **/
+export async  function setPropertyAtBackEnd(property,value) {
+  PARAMETER.method = 'setProperty';
+  PARAMETER.params = [property, value];
+  PARAMETER.id=5845;
+  return axios.post(LOCALHOST_API_URL, PARAMETER)
+      .then((response) => {
+    if (response.data.hasOwnProperty("result")) {
+      return {success: response.data.result};
+    } else {
+       return {success: false, data: response.data.error.message};
+     }
+}).catch((error) => {
+    return {success: false, data: error};
+});
+}
+
+/**
  * 验证交易
  * @param txHex
  * @returns {Promise<any>}
@@ -227,9 +249,10 @@ export async function agentDeposistList(agentHash) {
  * @returns {Promise<any>}
  */
 export async function getContractConstructor(contractCodeHex) {
-  return await post('/', 'getContractConstructor', [contractCodeHex])
+ // console.log("contractCodeHex : "+contractCodeHex);
+  return await localhostPost('', 'getContractConstructor', [contractCodeHex])
     .then((response) => {
-      //console.log(response);
+    //  console.log(response);
       if (response.hasOwnProperty("result")) {
         return {success: true, data: response.result.constructor};
       } else {

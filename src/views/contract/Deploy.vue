@@ -11,7 +11,7 @@
       <div class="modes bg-white w1200">
         <div class="parameter" style="padding-top: 1rem">
           <el-form-item :label="$t('deploy.deploy21')" prop="alias">
-            <el-input v-model="deployForm.alias" autocomplete="off" @change="changeAlias">
+            <el-input v-model="deployForm.alias" autocomplete="off" >
             </el-input>
           </el-form-item>
         </div>
@@ -27,13 +27,15 @@
             <p class="font14">{{$t('deploy.deploy3')}}</p>
             <p class="font12" v-show="fileName">{{$t('deploy.deploy4')}}:{{fileName}}</p>
           </div>
+          <div class="parameter" v-if="autoLoad==='1'">{{$t('deploy.deploy23')}}</div>
         </div>
+
         <div class="parameter" v-if="deployForm.parameterList">
           <el-form-item v-for="(domain, index) in deployForm.parameterList" :label="domain.name" :key="domain.name"
                         :prop="'parameterList.' + index + '.value'"
                         :rules="{required: domain.required,message:domain.name+$t('call.call2'), trigger: 'blur'}"
           >
-            <el-input v-model.trim="domain.value" @change="changeParameter">
+            <el-input v-model.trim="domain.value">
             </el-input>
           </el-form-item>
         </div>
@@ -44,11 +46,11 @@
           </el-form-item>
           <div v-if="deployForm.senior" class="senior-div bg-white">
             <el-form-item label="Gas Limit" prop="gas">
-              <el-input v-model="deployForm.gas">
+              <el-input v-model.number="deployForm.gas" type="number"  >
               </el-input>
             </el-form-item>
             <el-form-item label="Price" prop="price">
-              <el-input v-model="deployForm.price">
+              <el-input v-model.number="deployForm.price" type="number" >
               </el-input>
             </el-form-item>
             <el-form-item :label="$t('public.contractInfo')" prop="addtion">
@@ -59,15 +61,15 @@
         </div>
       </div>
       <el-form-item class="form-next">
-        <el-button type="success" @click="testSubmitForm('deployForm')">
+        <el-button type="success" @click="submitTestDeploy('deployForm',tipSuccess)">
           {{$t('deploy.deploy5')}}
         </el-button>
         <br/>
         <div class="mb_20"></div>
-        <el-button @click="submitForm('deployForm')">{{$t('deploy.deploy6')}}</el-button>
+        <el-button @click="submitDeploy('deployForm')">{{$t('deploy.deploy6')}}</el-button>
       </el-form-item>
     </el-form>
-    <Password ref="password" @passwordSubmit="passSubmit">
+    <Password ref="password" @passwordSubmit="confirmDeploy">
     </Password>
   </div>
 </template>
@@ -78,11 +80,11 @@
   import utils from 'nuls-sdk-js/lib/utils/utils'
   import {
     getNulsBalance,
-    countFee,
-    inputsOrOutputs,
+   // countFee,
+   // inputsOrOutputs,
     getContractConstructor,
-    validateTx,
-    broadcastTx,
+   // validateTx,
+   // broadcastTx,
   } from '@/api/requestData'
   import Password from '@/components/PasswordBar'
   import {getArgs, chainID} from '@/api/util'
@@ -102,9 +104,39 @@
           callback();
         }
       };
+
+      let validateGas = (rule, value, callback) => {
+        if (!value) {
+          //callback(new Error(this.$t('deploy.deploy8')));
+          callback();
+        } else if (value < 1) {
+          this.deployForm.gas = 1;
+          callback();
+        } else if (value > 10000000) {
+          this.deployForm.gas = 10000000;
+          callback();
+        } else {
+          callback();
+        }
+      };
+
+      let validatePrice = (rule, value, callback) => {
+        if (!value) {
+           this.deployForm.price = sdk.CONTRACT_MINIMUM_PRICE;
+           callback();
+        } else if (value < sdk.CONTRACT_MINIMUM_PRICE) {
+          this.deployForm.price = sdk.CONTRACT_MINIMUM_PRICE;
+          callback();
+        } else {
+          callback();
+        }
+      };
+
       return {
         //选择部署
         resource: '1',
+        //自动加载jar包
+        autoLoad:'0',
         //部署表单
         deployForm: {
           alias: '',
@@ -123,10 +155,10 @@
             {required: true, message: this.$t('deploy.deploy7'), trigger: 'blur'},
           ],
           gas: [
-            {type: 'number', required: true, message: this.$t('deploy.deploy8'), trigger: 'blur'},
+            {type: 'number',validator: validateGas, trigger: 'blur'},
           ],
           price: [
-            {type: 'number', required: true, message: this.$t('deploy.deploy9'), trigger: 'blur'},
+            {type: 'number', validator: validatePrice,trigger: 'blur'},
           ]
         },
         createAddress: '',//创建合约地址
@@ -138,15 +170,19 @@
       };
     },
     props: {
-      addressInfo: Object
+      addressInfo: Object,
     },
     components: {
       Password,
     },
     created() {
+      this.autoLoad='0';
+      this.isTestSubmit=false;
       this.createAddress = this.addressInfo.address;
-      console.log(nuls.verifyAddress(this.addressInfo.address));
-      this.getBalanceByAddress(nuls.verifyAddress(this.addressInfo.address).chainId, 1, this.createAddress);
+      if(this.createAddress){
+        this.getBalanceByAddress(nuls.verifyAddress(this.addressInfo.address).chainId, 1, this.createAddress);
+      }
+      this.getDefaultContract();
     },
     mounted() {
       //this.getTxInfoByHash(this.hash);
@@ -163,6 +199,7 @@
           this.deployForm.parameterList = [];
           this.deployForm.gas = '';
           this.deployForm.price = '';
+          this.deployForm.alias = '';
         }
       }
     },
@@ -174,55 +211,44 @@
        */
       changeRadio(e) {
         this.resource = e;
-        this.fileName = '';
-        this.deployForm = {
-          alias: '',
-          hex: '',
-          parameterList: [],
-          senior: false,
-          gas: '',
-          price: '',
-          addtion: '',
-        };
       },
 
       /**
-       * 合约名称 重新调取方法
+       * 提示合约测试通过
        **/
-      changeAlias() {
-        if (this.deployForm.hex) {
-          this.changeParameter();
-        }
-      },
+     tipSuccess(){
+           this.$message({message: this.$t('deploy.deploy16'), type: 'success', duration: 2000});
+     },
 
       /**
        * hex码 有值获取参数
        */
-      async getParameter() {
+        async getParameter() {
         if (this.deployForm.hex.length > 500) {
           this.deployLoading = true;
           let parameter = await getContractConstructor(this.deployForm.hex);
           if (parameter.success) {
             this.deployLoading = false;
-            if (parameter.data.args.length !== 0) {
-              this.deployForm.parameterList = parameter.data.args
+            if (parameter.data.length !== 0) {
+              this.deployForm.parameterList = parameter.data
             } else {
-              this.changeParameter();
+             // this.changeParameter();
             }
           } else {
-            this.$message({message: this.$t('deploy.deploy10') + parameter.data.error, type: 'error', duration: 1000});
+            this.$message({message: this.$t('deploy.deploy10') + parameter.data.message, type: 'error', duration: 2000});
+              this.deployLoading = false;
           }
-        }
-      },
-
-      /**
-       * 判断所有必填参数是否有值
-       **/
-      changeParameter() {
-        let newArgs = getArgs(this.deployForm.parameterList);
-        if (newArgs.allParameter) {
-          this.validateContractCreate(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args);
-          this.deployForm.price = sdk.CONTRACT_MINIMUM_PRICE;
+        }else{
+            this.fileName = '';
+            this.deployForm = {
+                 alias: '',
+                  hex: '',
+                  parameterList: [],
+                  senior: false,
+                  gas: '',
+                  price: '',
+                  addtion: '',
+              };
         }
       },
 
@@ -234,18 +260,19 @@
        * @param contractCode
        * @param args
        */
-      async validateContractCreate(createAddress, gasLimit, price, contractCode, args) {
-        return await this.$post('/', 'validateContractCreate', [createAddress, gasLimit, price, contractCode, args])
+      async validateContractCreate(createAddress, gasLimit, price, contractCode, args,callback) {
+        PARAMETER.method = 'validateContractCreate';
+        PARAMETER.params = [chainID(), createAddress, gasLimit, price, contractCode, args];
+        return  axios.post(LOCALHOST_API_URL,PARAMETER)
           .then((response) => {
-            //console.log(response.result);
-            if (response.result.success) {
-              this.imputedContractCreateGas(createAddress, contractCode, args, this.deployForm.alias);
+            if (response.data.hasOwnProperty("result")) {
+              this.imputedContractCreateGas(createAddress, contractCode, args,callback);
             } else {
-              this.$message({message: this.$t('deploy.deploy11') + response.error, type: 'error', duration: 1000});
+              this.$message({message: this.$t('deploy.deploy11') + response.data.error.message, type: 'error', duration: 2000});
             }
           })
           .catch((error) => {
-            this.$message({message: this.$t('deploy.deploy12') + error, type: 'error', duration: 1000});
+            this.$message({message: this.$t('deploy.deploy12') + error, type: 'error', duration: 2000});
           });
       },
 
@@ -256,19 +283,20 @@
        * @param args
        * @param alias
        */
-      async imputedContractCreateGas(createAddress, contractCode, args) {
-        return await this.$post('/', 'imputedContractCreateGas', [createAddress, contractCode, args])
+      async imputedContractCreateGas(createAddress, contractCode, args,callback) {
+        PARAMETER.method = 'imputedContractCreateGas';
+        PARAMETER.params = [chainID(),createAddress, contractCode, args];
+        return axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            //console.log(response);
-            if (response.hasOwnProperty("result")) {
-              this.deployForm.gas = response.result.gasLimit;
-              this.makeCreateData(response.result.gasLimit, createAddress, contractCode, args, this.deployForm.alias);
+            if (response.data.hasOwnProperty("result")) {
+              this.deployForm.gas = response.data.result.gasLimit;
+              this.makeCreateData(response.data.result.gasLimit, createAddress, contractCode, args, this.deployForm.alias,callback);
             } else {
-              this.$message({message: this.$t('deploy.deploy13') + response.error, type: 'error', duration: 1000});
+              this.$message({message: this.$t('deploy.deploy13') + response.data.error.message, type: 'error', duration: 2000});
             }
           })
           .catch((error) => {
-            this.$message({message: this.$t('deploy.deploy14') + error, type: 'error', duration: 1000});
+            this.$message({message: this.$t('deploy.deploy14') + error.message, type: 'error', duration: 2000});
           });
       },
 
@@ -296,7 +324,7 @@
        * @param args
        * @param alias
        */
-      async makeCreateData(gasLimit, createAddress, contractCode, args, alias) {
+      async makeCreateData(gasLimit, createAddress, contractCode, args, alias,callback) {
         let contractCreate = {};
         contractCreate.chainId = chainID();
         contractCreate.sender = createAddress;
@@ -313,9 +341,14 @@
         }
         contractCreate.contractAddress = sdk.getStringContractAddress(chainID());
         if (!contractCreate.chainId || !contractCreate.contractAddress || !contractCreate.contractCode || !contractCreate.gasLimit || !contractCreate.price || !contractCreate.sender) {
-          this.$message({message: this.$t('deploy.deploy15'), type: 'error', duration: 1000});
+          this.$message({message: this.$t('deploy.deploy15'), type: 'error', duration: 2000});
         } else {
-          this.contractCreateTxData = contractCreate;
+            this.isTestSubmit=true;
+            this.contractCreateTxData = contractCreate;
+            if(callback instanceof Function){
+                callback();
+                 console.log("callback");
+            }
         }
       },
 
@@ -327,14 +360,13 @@
        **/
       getBalanceByAddress(assetChainId, assetId, address) {
         getNulsBalance(assetChainId, assetId, address).then((response) => {
-          //console.log(response);
           if (response.success) {
             this.balanceInfo = response.data;
           } else {
-            this.$message({message: this.$t('public.err2') + response, type: 'error', duration: 1000});
+            this.$message({message: this.$t('public.err2') + response, type: 'error', duration: 2000});
           }
         }).catch((error) => {
-          this.$message({message: this.$t('public.err3') + error, type: 'error', duration: 1000});
+          this.$message({message: this.$t('public.err3') + error, type: 'error', duration: 2000});
         });
       },
 
@@ -342,12 +374,16 @@
        * 测试部署合约
        * @param formName
        **/
-      testSubmitForm(formName) {
+      submitTestDeploy(formName,callback) {
+       this.deployForm.price = sdk.CONTRACT_MINIMUM_PRICE;
+       let newArgs = getArgs(this.deployForm.parameterList);
+        if(!this.deployForm.alias ||!newArgs.allParameter){
+             this.$message({message: this.$t('error.10013') , type: 'error', duration: 2000});
+        }
         this.$refs[formName].validate((valid) => {
           if (valid) {
-            let newArgs = getArgs(this.deployForm.parameterList);
             if (newArgs.allParameter) {
-              this.testDeploy(this.createAddress, this.deployForm.gas, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args);
+              this.validateContractCreate(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args,callback);
             }
           } else {
             return false;
@@ -355,54 +391,51 @@
         });
       },
 
-      //测试部署合约
-      async testDeploy(createAddress, gasLimit, price, contractCode, args) {
-        await this.$post('/', 'validateContractCreate', [createAddress, gasLimit, price, contractCode, args])
-          .then((response) => {
-            //console.log(response.result);
-            if (response.result.success) {
-              this.$message({message: this.$t('deploy.deploy16'), type: 'success', duration: 1000});
-            } else {
-              this.$message({message: this.$t('deploy.deploy11') + response.error, type: 'error', duration: 1000});
-            }
-          })
-          .catch((error) => {
-            this.$message({message: this.$t('deploy.deploy12') + error, type: 'error', duration: 1000});
-          });
-
-      },
 
       /**
        * 部署合约
        * @param formName
        **/
-      submitForm(formName) {
+      submitDeploy(formName) {
+      if(!this.isTestSubmit){
+        this.submitTestDeploy(formName,this.showPassword);
+      }else{
         this.$refs[formName].validate((valid) => {
           if (valid) {
-            this.isTestSubmit = false;
-            this.$refs.password.showPassword(true)
+            this.showPassword();
           } else {
             return false;
           }
         });
+      }
       },
+
+      /**
+       * 展示密码窗口
+       **/
+     showPassword(){
+        this.$refs.password.showPassword(true);
+        this.isTestSubmit=false;
+     },
 
       /**
        *  获取密码框的密码
        * @param password
        **/
-      async passSubmit(password) {
-
+      async confirmDeploy(password) {
         let newArgs = getArgs(this.deployForm.parameterList);
         if (newArgs.allParameter) {
           PARAMETER.method = 'createContract';
-          PARAMETER.params = [chainID(), 2, 1, this.addressInfo.address, password, this.deployForm.hex, this.deployForm.alias, newArgs.args, this.deployForm.gas, this.deployForm.price, this.deployForm.addtion];
-          axios.post(LOCALHOST_API_URL, PARAMETER)
+          PARAMETER.params = [chainID(), chainID(), 1, this.addressInfo.address, password, this.deployForm.hex, this.deployForm.alias, newArgs.args, this.deployForm.gas, this.deployForm.price, this.deployForm.addtion];
+           axios.post(LOCALHOST_API_URL, PARAMETER)
             .then((response) => {
-              //console.log(response.data);
               if (response.data.hasOwnProperty('result')) {
-                this.$message({message: "合约不是成功，合约地址: " + response.data.result.contractAddress, type: 'success', duration: 1000});
+                this.$message({message: this.$t('deploy.deploy24') + response.data.result.contractAddress, type: 'success', duration: 2000});
+                 this.getDefaultContract();
+              }else{
+              this.$message({message: this.$t('deploy.deploy25')+ response.data.error.message, type: 'error', duration: 2000});
               }
+
             }).catch((err) => {
             console.log(err)
           });
@@ -415,6 +448,7 @@
        */
       async uploadJar() {
         let _this = this;
+        _this.autoLoad='0';
         let obj = document.getElementById("fileId");
         obj.click();
         obj.onchange = function () {
@@ -425,21 +459,46 @@
             let reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = (() => {
-              _this.$post('/', 'uploadContractJar', [reader.result])
+             PARAMETER.method = 'uploadContractJar';
+             PARAMETER.params = [chainID(), reader.result];
+              axios.post(LOCALHOST_API_URL,PARAMETER)
                 .then((response) => {
-                  //console.log(response);
-                  if (response.hasOwnProperty("result")) {
-                    _this.deployForm.hex = response.result.code;
+                  if (response.data.hasOwnProperty("result")) {
+                    _this.deployForm.hex = response.data.result.code;
                     _this.getParameter();
                   } else {
-                    this.$message({message: this.$t('deploy.deploy17'), type: 'error', duration: 1000});
+                    this.$message({message:response.data.error.message, type: 'error', duration: 2000});
                   }
                 }).catch((err) => {
-                this.$message({message: this.$t('deploy.deploy18') + err, type: 'error', duration: 1000});
+                this.$message({message: err, type: 'error', duration: 2000});
               })
             });
           }
         }
+      },
+
+      getDefaultContract(){
+            PARAMETER.method = 'getDefaultContractCode';
+            PARAMETER.params=[];
+            axios.post(LOCALHOST_API_URL,PARAMETER)
+               .then((response) => {
+                 if (response.data.hasOwnProperty("result")) {
+                    if(response.data.result.haveJarFile){
+                       this.autoLoad='1';
+                       this.deployForm.hex = response.data.result.codeHex;
+                       this.deployForm.alias='';
+                       this.deployForm.gas='';
+                       this.deployForm.price='';
+                       this.deployForm.addtion='';
+                       this.fileName= response.data.result.fileName;
+                       this.getParameter();
+                    }
+                 } else {
+                   this.$message({message:response.data.error.message, type: 'error', duration: 2000});
+                 }
+               }).catch((err) => {
+               this.$message({message: err, type: 'error', duration: 2000});
+             })
       },
     }
   }

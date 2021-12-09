@@ -32,9 +32,19 @@
           </template>
         </el-table-column>
       </el-table>
-      <div class="pages">
-        <div class="page-total">{{$t('public.total')}} {{addressList.length}}</div>
-      </div>
+         <div class="pages">
+            <div class="page-total">
+              {{$t('public.display')}} {{pageIndex-1 === 0 ? 1 : (pageIndex-1) *pageSize}}-{{pageIndex*pageSize}}
+              {{$t('public.total')}} {{pageTotal}}
+            </div>
+            <el-pagination v-show="pageTotal > pageSize" @current-change="myAddressPages" class="fr"
+                           :current-page="pageIndex"
+                           :page-size="pageSize"
+                           background
+                           layout=" prev, pager, next, jumper"
+                           :total="pageTotal">
+            </el-pagination>
+          </div>
     </div>
 
     <el-dialog title="Remarks" width="30rem"
@@ -59,7 +69,7 @@
 
 <script>
   import Password from '@/components/PasswordBar'
-  import {chainIdNumber, addressInfo, chainID} from '@/api/util'
+  import {chainIdNumber, addressInfo, chainID,timesDecimals} from '@/api/util'
   import {LOCALHOST_API_URL, PARAMETER} from '@/config.js'
   import axios from 'axios'
 
@@ -67,6 +77,9 @@
     data() {
       return {
         addressList: [],//地址列表
+        pageIndex: 1, //页码
+        pageSize: 10, //每页条数
+        pageTotal: 0,//总页数
         selectAddressInfo: '', //操作的地址信息
         remarkDialog: false,//备注弹框
         remarkInfo: '',//备注信息
@@ -77,29 +90,50 @@
       Password,
     },
     created() {
+     this.defaultAddress = localStorage.getItem(chainIdNumber());
       this.getAddressList();
     },
     mounted() {
     },
     methods: {
-
       /**
        * 获取账户列表
        */
       async getAddressList() {
-        this.addressList = await addressInfo();
-        //如果没有账户跳转到创建地址界面
-        if (this.addressList.length === 0) {
-          this.$router.push({
-            name: "newAddress",
-            query: {'address': ''}
-          })
-        } else {
-          if (!localStorage.hasOwnProperty(chainIdNumber())) {
-            localStorage.setItem(chainIdNumber(), this.addressList[0].address)
-          }
-        }
-        this.defaultAddress = localStorage.getItem(chainIdNumber());
+        PARAMETER.method = 'getAccountList';
+        PARAMETER.params = [chainID(), this.pageIndex, this.pageSize];
+        axios.post(LOCALHOST_API_URL, PARAMETER)
+          .then((response) => {
+            if (response.data.hasOwnProperty("result")) {
+                this.addressList = response.data.result.list;
+               //如果没有账户跳转到创建账户界面
+              if (this.addressList.length === 0) {
+                     this.$router.push({
+                        name: "newAddress",
+                        query: {'address': ''}
+                     })
+              }else{
+                    for (let item of this.addressList) {
+                        item.balance = timesDecimals(item.balance);
+                    }
+                 this.pageTotal = response.data.result.total;
+                  this.defaultAddress = localStorage.getItem(chainIdNumber());
+              }
+            } else {
+              this.$message({message: this.$t('contract.contract11') + response.data.error.message, type: 'error', duration: 1000});
+            }
+          }).catch((error) => {
+            this.$message({message: this.$t('address.address14') + error, type: 'error', duration: 1000});
+          });
+      },
+
+      /**
+       * 地址列表分页
+       * @param val
+       **/
+      myAddressPages(val) {
+        this.pageIndex = val;
+        this.getAddressList();
       },
 
       /**
@@ -164,9 +198,14 @@
         PARAMETER.params = [chainID(), this.selectAddressInfo.address, password];
         axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            //console.log(response.data);
             if (response.data.hasOwnProperty('result')) {
-              this.getAddressList()
+              if(this.selectAddressInfo.address== localStorage.getItem(chainIdNumber())){
+                 localStorage.removeItem(chainIdNumber());
+                 localStorage.removeItem(this.selectAddressInfo.address);
+              }
+              this.getAddressList();
+            }else{
+              this.$message({message: this.$t('address.address15') + response.data.error.message, type: 'error', duration: 1000});
             }
           }).catch((err) => {
           console.log(err)
@@ -205,7 +244,6 @@
        * @param param
        */
       toUrl(name, param) {
-        //console.log(name)
         this.$router.push({
           name: name,
           query: {'address': param}

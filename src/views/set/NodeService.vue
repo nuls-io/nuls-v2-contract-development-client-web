@@ -95,6 +95,8 @@
 <script>
   import axios from 'axios'
   import {defaultData} from '@/config'
+  import {setPropertyAtBackEnd} from '@/api/requestData'
+
 
   export default {
     data() {
@@ -175,11 +177,24 @@
             this.nodeServiceData[index].selection = true;
             localStorage.setItem("urls", JSON.stringify(this.nodeServiceData[index]));
             localStorage.setItem("urlsData", JSON.stringify(this.nodeServiceData));
+            this.setUrlAddress(this.nodeServiceData[index].urls);
             setTimeout(() => {
               this.loading = false;
             }, 2000);
           }
         }
+      },
+
+      setUrlAddress(urls){
+         setPropertyAtBackEnd("apiModuleAddress",urls).then((response) => {
+              if (response.success) {
+                  // this.$message({message: this.$t('public.setsuccess'), type: 'error', duration: 1000});
+              } else {
+                   this.$message({message: this.$t('public.setfail') +": "+response.data , type: 'error', duration: 1000});
+              }
+         }).catch((error) => {
+                this.$message({message: this.$t('public.setfail')+": "+error , type: 'error', duration: 1000});
+         });
       },
 
       /**
@@ -206,7 +221,6 @@
           const params = {jsonrpc: "2.0", method: "getChainInfo", "params": [], "id": 5898};
           await axios.post(item.urls, params)
             .then(function (response) {
-              //console.log(response);
               if (response.data.hasOwnProperty("result")) {
                 endTime = (new Date()).valueOf();
                 item.delay = endTime - startTime;
@@ -224,10 +238,10 @@
               item.state = 0;
               console.log(error);
             });
-          //console.log(item);
           if (item.selection) {
-            isUrl = false;
+            isUrl=false;
             localStorage.setItem("urls", JSON.stringify(item));
+            this.setUrlAddress(item.urls);
           }
           newData.push(item);
         }
@@ -239,6 +253,7 @@
             if (Number(item) === minIndex) {
               newData[minIndex].selection = true;
               localStorage.setItem("urls", JSON.stringify(newData[minIndex]));
+              this.setUrlAddress(newData[minIndex].urls);
             }
           }
         }
@@ -274,21 +289,20 @@
             const params = {jsonrpc: "2.0", method: "getChainInfo", "params": [], "id": 5898};
             axios.post(this.nodeServiceForm.urls, params)
               .then(function (response) {
-                //console.log(response.data);
                 if (response.data.hasOwnProperty("result")) {
                   that.testInfo.state = 1;
                   that.testInfo.result = response.data.result;
                   that.nodeServiceDialogLoading = false;
                 } else {
-                  that.testInfo.state = 200000;
-                  that.testInfo.result = response.data;
+                  that.testInfo.state = 2;
+                  that.testInfo.result = response.data.error.message;
                   that.nodeServiceDialogLoading = false;
                 }
               })
               .catch(function (error) {
-                console.log(that.testInfo.success);
+                console.log(error.message);
                 that.testInfo.state = 300000;
-                that.testInfo.result = error;
+                that.testInfo.result = error.message;
                 console.log("getBestBlockHeader:" + error);
                 that.nodeServiceDialogLoading = false;
               });
@@ -322,7 +336,7 @@
               selection: false,
               isDelete: true,
               chainId: this.testInfo.result.chainId,
-              assetId: this.testInfo.result.assetId,
+              assetId: this.testInfo.result.assets.assetId,
               chainName: this.testInfo.result.chainName,
               decimals: this.testInfo.result.defaultAsset.decimals
             };
@@ -354,8 +368,7 @@
       /**
        * Url改变
        **/
-      changeUrls(e) {
-        console.log(e);
+      changeUrls() {
         this.testInfo.state = 0;
         this.testInfo.result = {}
       },
@@ -377,7 +390,8 @@
        **/
       edit(index) {
         this.editIndex = index;
-        this.nodeServiceForm = this.nodeServiceData[index];
+        this.nodeServiceForm =JSON.parse(JSON.stringify(this.nodeServiceData[index]));
+       // this.nodeServiceForm = this.nodeServiceData[index];
         this.nodeServiceDialog = true;
       },
 

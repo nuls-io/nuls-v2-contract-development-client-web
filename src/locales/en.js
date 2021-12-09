@@ -59,12 +59,14 @@ const en = {
     "about": "About",
     "logInfo": "Log Info",
     "see": "See",
-    "version": "Version",
+    "version": "Version Info",
     "checkUpdates": "Check Updates",
     "operatingSystem": "System",
     "into":"Into",
     "re-import":"Re-import",
     "": "",
+    "platform-name":"The Offline Smart Contract Debugging Platform",
+    "platform-desc":"The platform is based on NULS 2.0 API Module, which can be used for the release and invocation of intelligent contracts without the need to deploy NULS 2.0 wallet. Before issuing and invoking a smart contract, check that the service node is configured correctly.",
 
     "err": "Verify and broadcast transaction failure:",
     "err0": "Verify and broadcast transaction exceptions:",
@@ -72,6 +74,8 @@ const en = {
     "err2": "Failed to obtain account balance:",
     "err3": "Obtain account balance exceptions:",
 
+    "setsuccess": "Back-end parameter settings were successful",
+    "setfail": "Backend parameter settings failed",
   },
 
   "error": {
@@ -171,6 +175,7 @@ const en = {
     "ac_0049": "Transaction coinFrom underpayment",
     "ac_0050": "There can only be one multi-signature address",
     "ac_0051": "CoinData cannot have contract address",
+    "ac_0052":"Please select the account address on the address list page",
     "bl_0001": "Chain switch failed",
     "bl_0002": "The local genesis block differ from network",
     "bl_0003": "Error occur when init local block",
@@ -387,6 +392,7 @@ const en = {
     "tab8": "Cause freezing",
     "tab9": "Balance",
     "tab10": "State",
+    "tab12":"Complete backup",
   },
 
   "type": {
@@ -483,11 +489,18 @@ const en = {
 
   "contractStatus": {
     "undefined": "",
-    "-1": "Create failure",
-    "0": "Uncertificated",
-    "1": "Certificating",
-    "2": "Certificated",
-    "3": "Deleted"
+    "-1": "Execution failed",
+    "0": "Normal",
+    "1": "Normal",
+    "2": "Normal",
+    "3": "Termination"
+  },
+
+  "contractType": {
+    "undefined": "",
+    "0": "General Contract",
+    "1": "NRC20",
+    "2": "NRC721"
   },
 
   "password": {
@@ -624,23 +637,24 @@ const en = {
     "address11": "Confirm",
     "address12": "Sorry, the account balance is insufficient.",
     "address13": "Password error",
+    "address14": "Failed to get address list",
+    "address15": "Failed to remove address:",
     "address": "",
-
   },
 
   "newAddress": {
-    "newAddress0": "Create Wallet",
+    "newAddress0": "Create Account",
     "newAddress1": "Backup account",
     "newAddress2": "Set password",
     "newAddress3": "Backups",
-    "newAddress4": "Please set up a password for importing accounts, transferring accounts, participating in consensus and other important behavior verification.",
+    "newAddress4": "This account is used to test the deployment and invocation of the smart contracts, allowing no password to be set.",
     "newAddress5": "Please keep your wallet password carefully. NULS wallet does not store your password and can't help you find it. Please keep it in mind.",
     "newAddress6": "Password",
     "newAddress7": "Confirm password",
     "newAddress8": "Click Next and you've agreed.",
     "newAddress9": "user agreement",
     "newAddress10": "Next",
-    "newAddress11": "Import Wallet",
+    "newAddress11": "Import private key",
     "newAddress12": "Your account address",
     "newAddress13": "Don't lose it! NULS will not be able to help you retrieve the missing key",
     "newAddress14": "Don't share with others! If you use this file on malicious websites, your funds may be at risk of theft.",
@@ -659,6 +673,8 @@ const en = {
     "newAddress27": "File save completed, location:",
     "newAddress28": "Select the location where the keystore file is saved",
     "newAddress29": "Please choose a password-aware prompt",
+    "newAddress30": "Account creation failed:",
+    "newAddress31": "Export private key failed:",
     "newAddress": "",
   },
 
@@ -681,14 +697,14 @@ const en = {
 
   "importAddress": {
     "importAddress0": "Create address",
-    "importAddress1": "Import Wallet",
+    "importAddress1": "Import private key",
     "importAddress2": "Keystore import",
     "importAddress3": "Key import",
     "importAddress4": "Select the keystore file",
     "importAddress5": "Please enter your private key:",
     "importAddress6": "Password",
     "importAddress7": "Confirm password",
-    "importAddress8": "Import Wallet",
+    "importAddress8": "Import private key",
     "importAddress9": "Private key cannot be empty",
     "importAddress10": "Please input a password",
     "importAddress11": "Please enter an 8-20-bit password composed of letters and numbers",
@@ -698,6 +714,7 @@ const en = {
     "importAddress15": "Keystore import failed, please restart and try again ",
     "importAddress16": "Please select the correct keystore file",
     "importAddress17": "Please select a keystore file to import",
+    "importAddress18": "Import private key fail:",
   },
 
   "setAlias": {
@@ -726,6 +743,7 @@ const en = {
     "contract13": "Search contract failed:",
     "contract14": "Search for contract exceptions:",
     "contract15": "Please enter the correct contract address",
+    "contract16":"Contract type",
     "contract": "",
   },
 
@@ -740,6 +758,8 @@ const en = {
     "call8": "Unchained method call failed",
     "call9": "Unchained method call exception",
     "call10": "Gas too small may cause contract transactions to fail",
+    "call11":"Contract invocation is successful, transaction data HASH: ",
+    "call12":"Contract call failed, error message: ",
     "call": "",
   },
 
@@ -767,6 +787,10 @@ const en = {
     "deploy19": "Please enter the contract name.",
     "deploy20": "Contract name (only lowercase letters, numbers, underscores are allowed (underscores cannot be at both ends)",
     "deploy21": "Contract Name",
+    "deploy22":"Start deploy contract",
+    "deploy23":"The current contract code has been read automatically. If you need to deploy another contract, please upload it by yourself.",
+    "deploy24":"Contract deployment is successful, contract address:",
+    "deploy25":"Contract deployment failed, error message:",
     "deploy": "deploy",
   },
 
@@ -802,6 +826,12 @@ const en = {
     "contractInfo12": "Get contract transaction list exception:",
     "contractInfo13": "Failed to verify deletion contract:",
     "contractInfo14": "contractInfo",
+    "contractInfo15":"Contract parameters",
+    "contractInfo16":"Contract result",
+  },
+
+  "transaciontInfo":{
+    "info1":"Query failed",
   },
 
   "bottom": {

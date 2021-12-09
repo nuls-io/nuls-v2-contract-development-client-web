@@ -5,8 +5,8 @@
       <span v-show="addressInfo.alias"> | {{addressInfo.alias}}</span>
       <i class="iconfont icon-fuzhi clicks"></i>
     </h3>
-    <el-tabs v-model="contractActive" class="w1200" @tab-click="handleClick">
-      <el-tab-pane :label="$t('contract.contract1')" name="contractFirst">
+    <el-tabs v-model="contractActive" class="w1200" @tab-click="handleClick" style="margin-bottom:100px">
+      <el-tab-pane :label="$t('contract.contract1')" name="contractFirst" v-loading="myContractDataLoading">
         <div class="my_contract">
           <el-table :data="myContractData" stripe border>
             <el-table-column :label="$t('contract.contract2')" align="center" min-width="220">
@@ -21,10 +21,16 @@
                 <span>{{scope.row.alias}}</span>
               </template>
             </el-table-column>
+            <el-table-column :label="$t('contract.contract16')" align="center">
+              <template slot-scope="scope"><span>{{ $t('contractType.'+scope.row.tokenType) }}</span></template>
+            </el-table-column>
             <el-table-column :label="$t('public.status')" align="center">
               <template slot-scope="scope"><span>{{ $t('contractStatus.'+scope.row.status) }}</span></template>
             </el-table-column>
-            <el-table-column prop="createTime" :label="$t('public.time')" align="center">
+            <el-table-column prop="createTime" :label="$t('public.time')"  width="170" align="center">
+              <template slot-scope="scope">
+                     <span>{{scope.row.createTime |convertTime}}</span>
+               </template>
             </el-table-column>
             <el-table-column :label="$t('public.operation')" align="center">
               <template slot-scope="scope">
@@ -54,6 +60,44 @@
           </div>
         </div>
       </el-tab-pane>
+      <el-tab-pane :label="$t('contract.contract5')" name="contractSecond">
+              <div class="bg-white w1200 search">
+                <div class="search-div">
+                  <el-input :placeholder="$t('contract.contract6')" v-model.trim="searchContract" class="search-input">
+                  </el-input>
+                  <el-button type="success" class="search-button" @click="searchContractByAddress">
+                    {{$t('contract.contract7')}}
+                  </el-button>
+                  <u class="click td" @click="toUrl('contracts','',1)">{{$t('contract.contract8')}}</u>
+                </div>
+                <div class="contract-info bg-gray" v-show="contractInfo.contractAddress">
+                  <div class="contract-address font16">
+                    <div>
+                      <p class="fl">{{$t('contract.contract9')}}:</p>
+                      <h6 class="fl font16">
+                        {{contractInfo.contractAddress}}
+                        <i class="font18" :class="isCollection ? 'el-icon-star-on' : 'el-icon-star-off'"
+                           @click="collection(contractInfo.contractAddress)"
+                           v-show="contractInfo.creater !== addressInfo.address"
+                        ></i>
+                      </h6>
+                    </div>
+                    <div class="cb"></div>
+                    <div>
+                      <p class="fl">{{$t('public.contractName')}}:</p>
+                      <h6 class="fl font16">{{contractInfo.alias}}</h6>
+                    </div>
+                    <div class="cb"></div>
+                    <div v-show="contractInfo.remark">
+                      <p class="fl">{{$t('public.contractInfo')}}:</p>
+                      <h6 class="fl font16 overflow">{{contractInfo.remark}}</h6>
+                    </div>
+                  </div>
+                  <Call :modelList="modelData" :contractAddress="contractInfo.contractAddress" :decimals="decimals">
+                  </Call>
+                </div>
+              </div>
+      </el-tab-pane>
       <el-tab-pane :label="$t('contract.contract10')" name="contractThird">
         <Deploy :addressInfo="addressInfo">
         </Deploy>
@@ -63,9 +107,9 @@
 </template>
 
 <script>
-  import moment from 'moment'
-  import {getLocalTime, chainIdNumber, addressInfo, connectToExplorer} from '@/api/util'
+  import {chainIdNumber,myContractList,connectToExplorer,timestampToTime} from '@/api/util'
   import Deploy from './Deploy'
+  import Call from './Call'
 
   export default {
     data() {
@@ -82,20 +126,41 @@
         isCollection: false,//是否收藏
         contractInfo: {},//合约详情
         modelData: [],//合约方法列表
+        decimals: 0,//合约精度系数
         defaultAddress: '',//默认地址
+        myCollectionList:[],//收藏合约列表
+        myContractDataLoading: true,//我的合约加载动画
       };
     },
     created() {
       this.addressInfo.address = localStorage.getItem(chainIdNumber());
+      if(!this.addressInfo.address){
+         this.$message({message: this.$t('error.ac_0052'), type: 'error', duration: 1000});
+      }
+      this.myCollectionList=myContractList(this.addressInfo.address);
+      this.defaultAddress = localStorage.getItem(chainIdNumber());
     },
     mounted() {
-      this.getMyContractByAddress(this.addressInfo.address);
+       if(this.addressInfo.address){
+             this.myCollectionList=myContractList(this.addressInfo.address);
+             this.getMyContractByAddress(this.addressInfo.address);
+       }
       setInterval(() => {
         this.defaultAddress = localStorage.getItem(chainIdNumber());
-      }, 500);
+        this.myCollectionList=myContractList(this.addressInfo.address);
+        if(this.addressInfo.address){
+               this.getMyContractByAddress(this.addressInfo.address);
+        }
+      }, 8000);
+    },
+    filters :{
+        convertTime(value){
+            return timestampToTime(value);
+        }
     },
     components: {
       Deploy,
+      Call,
     },
     watch: {
       defaultAddress(val, old) {
@@ -111,14 +176,21 @@
        * @param tab
        **/
       handleClick(tab) {
-        //console.log(tab.name);
         if (tab.name === 'contractSecond') {
           this.searchContract = '';
           this.isCollection = false;
           this.contractInfo = {};
           this.modelData = [];
+          if(!this.addressInfo.address){
+             this.$message({message: this.$t('error.ac_0052'), type: 'error', duration: 1000});
+          }
         } else if (tab.name === 'contractFirst') {
-          this.getMyContractByAddress(this.addressInfo.address);
+          this.addressInfo.address = localStorage.getItem(chainIdNumber());
+          if(this.addressInfo.address){
+               this.getMyContractByAddress(this.addressInfo.address);
+          }else{
+            this.$message({message: this.$t('error.ac_0052'), type: 'error', duration: 1000});
+          }
         }
       },
 
@@ -127,14 +199,25 @@
        * @param address
        **/
       async getMyContractByAddress(address) {
-        await this.$post('/', 'getAccountContractList', [this.pageIndex, this.pageSize, address, false, false])
+        await this.$post('/', 'getAccountContractList', [this.pageIndex, this.pageSize, address,-1, false])
           .then((response) => {
-            //console.log(response);
             if (response.hasOwnProperty("result")) {
-              this.myContractData = response.result.list;
-              this.pageTotal = response.result.totalCount;
+              //this.myContractData = response.result.list;
+             // this.pageTotal = response.result.totalCount;
+              let collectionList=myContractList(this.addressInfo.address);
+              if (response.result.list.length !== 0) {
+                let myContractList = [];
+                for (let item of response.result.list) {
+                  myContractList.push(item.contractAddress)
+                }
+                let newContractList = [...myContractList, ...collectionList];
+                this.getContractListById(this.pageIndex, this.pageSize, collectionList.length + response.result.totalCount, newContractList);
+              } else {
+                this.getContractListById(this.pageIndex, this.pageSize, collectionList.length, collectionList);
+              }
+              this.myContractDataLoading = false;
             } else {
-              this.$message({message: this.$t('contract.contract11') + response.error, type: 'error', duration: 1000});
+              this.$message({message: this.$t('contract.contract11') + response.error.data, type: 'error', duration: 1000});
             }
           })
           .catch((error) => {
@@ -148,7 +231,117 @@
        **/
       myContractPages(val) {
         this.pageIndex = val;
-        this.getMyContractByAddress()
+        this.getMyContractByAddress(this.addressInfo.address);
+      },
+
+      /**
+       * 获取智能合约列表
+       * @param pageIndex
+       * @param pageSize
+       * @param totalCount
+       * @param contractAddressList
+       **/
+      async getContractListById(pageIndex, pageSize, totalCount, contractAddressList) {
+        await this.$post('/', 'getContractListById', [pageIndex, pageSize, totalCount, contractAddressList])
+          .then((response) => {
+            if (response.hasOwnProperty("result")) {
+              this.myContractData = response.result.list;
+              this.pageTotal = response.result.totalCount;
+            } else {
+              this.$message({message: this.$t('contract.contract11') + response.error.message, type: 'error', duration: 1000});
+            }
+          })
+          .catch((error) => {
+            this.$message({message: this.$t('contract.contract12') + error, type: 'error', duration: 1000});
+          });
+      },
+
+      /**
+       * 搜索合约
+       **/
+      async searchContractByAddress() {
+        if (this.searchContract.length > 30) {
+          await this.$post('/', 'getContract', [this.searchContract])
+            .then((response) => {
+              if (response.hasOwnProperty("result")) {
+                this.contractInfo = response.result;
+                  //解决重载的问题
+                for(let item in response.result.methods){
+                    response.result.methods[item].keys=item;
+                }
+                this.modelData = (function () {
+                    var methodsFilter=[];
+                    var methods =response.result.methods;
+                    for(var i=0;i<methods.length;i++){
+                         if(methods[i].name!='<init>'){
+                              if( methods[i].name!='_payable' ||(methods[i].name=='_payable' && methods[i].params.length==0)){
+                                    methodsFilter.push(methods[i]);
+                            }
+                       }
+                     }
+                      return methodsFilter;
+                 })();
+                this.decimals = response.result.decimals;
+                let contractList = this.myCollectionList;
+                if (contractList.length !== 0 && contractList.includes(this.contractInfo.contractAddress)) {
+                  this.isCollection = true;
+                } else {
+                  this.isCollection = false;
+                }
+              } else {
+                this.$message({
+                  message: this.$t('contract.contract13') + response.error.message,
+                  type: 'error',
+                  duration: 1000
+                });
+              }
+            })
+            .catch((error) => {
+              this.$message({message: this.$t('contract.contract14') + error, type: 'error', duration: 1000});
+            });
+        } else {
+          this.$message({message: this.$t('contract.contract15'), type: 'error', duration: 1000});
+        }
+      },
+
+    /**
+       * 收藏合约
+       * @param contractAddress
+       **/
+      collection(contractAddress) {
+        this.isCollection = !this.isCollection;
+        let contractList = myContractList(this.addressInfo.address);
+        if (contractList.length !== 0) {
+          if (contractList.includes(contractAddress)) {
+            for (let [index, elem] of contractList.entries()) {
+              if (elem === contractAddress) {
+                contractList.splice(index, 1);
+              }
+            }
+          } else {
+            contractList.push(contractAddress);
+          }
+        } else {
+          contractList.push(contractAddress);
+        }
+        localStorage.setItem(this.addressInfo.address, JSON.stringify(contractList));
+      },
+
+      /**
+       * 取消收藏合约
+       * @param contractAddress
+       **/
+      cancelCollection(contractAddress) {
+        let contractList =myContractList(this.addressInfo.address);
+        if (contractList.includes(contractAddress)) {
+          for (let [index, elem] of contractList.entries()) {
+            if (elem === contractAddress) {
+              contractList.splice(index, 1);
+            }
+          }
+        }
+        localStorage.setItem(this.addressInfo.address, JSON.stringify(contractList));
+        this.getMyContractByAddress(this.addressInfo.address);
       },
 
       /**
@@ -159,7 +352,6 @@
        * @param activeName
        */
       toUrl(name, parms, type = 0, activeName) {
-        //console.log(name) contractInfo
         if (type.toString() === '0') {
           if (name === 'contractInfo') {
             this.$router.push({

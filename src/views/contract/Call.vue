@@ -3,8 +3,8 @@
     <el-form :model="callForm" :rules="callRules" ref="callForm" class="call-form">
       <el-form-item label="" prop="region" class="search-model">
         <el-select v-model="callForm.modelValue" :placeholder="$t('call.call1')" @change="changeModel">
-          <el-option v-for="item in callForm.modelData" :key="item.name" :label="item.name"
-                     :value="item.name">
+          <el-option v-for="item in callForm.modelData"  :key="item.keys" :label="item.name"
+                     :value="item.keys">
           </el-option>
         </el-select>
       </el-form-item>
@@ -12,7 +12,7 @@
                     :prop="'parameterList.' + index + '.value'"
                     :rules="{required: domain.required,message:domain.name+$t('call.call2'), trigger: 'blur'}"
       >
-        <el-input v-model="domain.value" @change="changeParameter"></el-input>
+        <el-input v-model.trim="domain.value" ></el-input>
       </el-form-item>
 
       <div class="div-senior" v-if="!selectionData.view">
@@ -21,7 +21,7 @@
         </el-form-item>
         <div class="senior-div" v-if="callForm.senior">
           <el-form-item label="Gas Limit" prop="gas">
-            <el-input v-model="callForm.gas"></el-input>
+          <el-input v-model="callForm.gas" ></el-input>
           </el-form-item>
           <el-form-item label="Price" prop="price">
             <el-input v-model="callForm.price"></el-input>
@@ -29,36 +29,43 @@
           <el-form-item label="Value" prop="values" v-show="selectionData.payable">
             <el-input v-model="callForm.values"></el-input>
           </el-form-item>
+          <el-form-item :label="$t('public.remarks')" prop="addtion">
+             <el-input type="textarea" :rows="3" maxlength="200" show-word-limit v-model="callForm.addtion">
+           </el-input>
+          </el-form-item>
         </div>
       </div>
 
       <el-form-item class="search-submit">
-        <el-button type="success" @click="submitForm('callForm')">{{$t('contract.contract4')}}</el-button>
+        <el-button type="success" @click="submitCallContract('callForm')">{{$t('contract.contract4')}}</el-button>
       </el-form-item>
     </el-form>
     <div class="cb"></div>
-    <div class="w630 bg-gray result" v-if="callResult">
+    <div class="w630 bg-gray wordwrap result" v-if="callResult">
       {{callResult}}
     </div>
-    <Password ref="password" @passwordSubmit="passSubmit">
+    <Password ref="password" @passwordSubmit="confirmCall">
     </Password>
   </div>
 </template>
 
 <script>
-  import nuls from 'nuls-sdk-js'
+  //import nuls from 'nuls-sdk-js'
   import sdk from 'nuls-sdk-js/lib/api/sdk'
   import utils from 'nuls-sdk-js/lib/utils/utils'
-  import {getNulsBalance, countFee, inputsOrOutputs, validateAndBroadcast} from '@/api/requestData'
+  import {getNulsBalance} from '@/api/requestData'
   import Password from '@/components/PasswordBar'
-  import {getArgs, Times, Plus, addressInfo, chainID,chainIdNumber} from '@/api/util'
+  import {getArgs, Times, chainID,chainIdNumber} from '@/api/util'
+  import {LOCALHOST_API_URL, PARAMETER} from '@/config.js'
+  import axios from 'axios'
 
   export default {
     data() {
 
       let validateGas = (rule, value, callback) => {
         if (!value) {
-          callback(new Error(this.$t('deploy.deploy8')));
+          //callback(new Error(this.$t('deploy.deploy8')));
+          callback();
         } else if (value < 1) {
           this.callForm.gas = 1;
           callback();
@@ -71,9 +78,11 @@
       };
       let validatePrice = (rule, value, callback) => {
         if (!value) {
-          callback(new Error(this.$t('deploy.deploy9')));
-        } else if (value < 1) {
-          this.callForm.price = 1;
+           this.callForm.price = sdk.CONTRACT_MINIMUM_PRICE;
+           callback();
+        } else if (value < sdk.CONTRACT_MINIMUM_PRICE) {
+          this.callForm.price = sdk.CONTRACT_MINIMUM_PRICE;
+          callback();
         } else {
           callback();
         }
@@ -87,6 +96,7 @@
       };
 
       return {
+        first:0,//首次进入
         addressInfo: {},//地址信息
         balanceInfo: {},//账户余额信息
         //调用接口form
@@ -98,6 +108,7 @@
           gas: 0,
           price: 0,
           values: 0,
+         addtion: '',
         },
         callRules: {
           gas: [
@@ -130,8 +141,9 @@
     },
     created() {
       this.addressInfo.address = localStorage.getItem(chainIdNumber());
-      this.callForm.modelData = this.modelList;
-      this.getBalanceByAddress(chainID(), 1, this.addressInfo.address);
+      if(this.addressInfo.address){
+        this.getBalanceByAddress(chainID(), 1, this.addressInfo.address);
+      }
     },
     mounted() {
       setInterval(() => {
@@ -157,17 +169,12 @@
         this.callResult = '';
         this.callForm.parameterList=[];
         for (let itme of this.callForm.modelData) {
-          if (itme.name === val) {
+          if (itme.keys === val) {
             this.selectionData = itme;
             this.callForm.parameterList = itme.params;
-            if(itme.params.length === 0){
-              this.chainMethodCall();
-            }
-            if (!itme.view) {
-              this.callForm.gas = 0;
-              //this.callForm.price = 0;
-              this.callForm.values = 0;
-            }
+            this.callForm.values = 0;
+            this.callForm.gas = 0;
+            this.callForm.price = 0;
           }
         }
       },
@@ -176,19 +183,21 @@
        * 判断所有必填参数是否有值
        **/
       changeParameter() {
-        this.chainMethodCall();
+         if (!this.selectionData.view) {
+            this.chainMethodCall();
+        }
       },
 
       /**
        * 调用方法
        * @param formName
        **/
-      submitForm(formName) {
+      submitCallContract(formName) {
         this.$refs[formName].validate((valid) => {
           if (valid) {
             if (this.selectionData.view) {  //不上链方法
               let newArgs = [];
-              if (this.selectionData.params.length > 0) { //有参数
+              if (this.callForm.parameterList.length > 0) { //有参数
                 newArgs = getArgs(this.callForm.parameterList, this.decimals);
                 if (newArgs.allParameter) {
                   this.methodCall(this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs.args)
@@ -197,14 +206,21 @@
                 this.methodCall(this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs)
               }
             } else { //上链方法
-              this.chainMethodCall();
-              this.$refs.password.showPassword(true);
+              this.chainMethodCall(this.showPassword);
+            // this.$refs.password.showPassword(true);
             }
           } else {
             return false;
           }
         });
       },
+
+      /**
+       * 展示密码窗口
+       **/
+     showPassword(){
+        this.$refs.password.showPassword(true);
+     },
 
       /**
        * 不上链方法调用
@@ -214,33 +230,34 @@
        * @param args
        */
       async methodCall(contractAddress, methodName, methodDesc, args) {
-        await this.$post('/', 'invokeView', [contractAddress, methodName, methodDesc, args])
+        PARAMETER.method = 'invokeContractViewMethod';
+        PARAMETER.params =[chainID(),contractAddress, methodName, methodDesc, args];
+        axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            //console.log(response);
-            if (response.hasOwnProperty("result")) {
-              this.callResult = response.result.result;
+            if (response.data.hasOwnProperty("result")) {
+              this.callResult = response.data.result.methodReturn;
             } else {
-              this.$message({message: this.$t('call.call8') + response.error, type: 'error', duration: 1000});
+              this.$message({message: this.$t('call.call8') + response.data.error.message, type: 'error', duration: 2000});
             }
           })
           .catch((error) => {
-            this.$message({message: this.$t('call.call9') + error, type: 'error', duration: 1000});
+            this.$message({message: this.$t('call.call9') + error, type: 'error', duration: 2000});
           });
       },
 
       /**
        * 上链方法调用
        */
-      chainMethodCall() {
+      chainMethodCall(callback) {
         let newArgs = [];
         this.callForm.price = sdk.CONTRACT_MINIMUM_PRICE;
-        if (this.selectionData.params.length > 0) { //有参数
+        if (this.callForm.parameterList.length > 0) { //有参数
           newArgs = getArgs(this.callForm.parameterList, this.decimals);
           if (newArgs.allParameter) {
-            this.validateContractCall(this.addressInfo.address, Number(Times(this.callForm.values, 100000000)), sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs.args);
+            this.validateContractCall(this.addressInfo.address, Number(Times(this.callForm.values, 100000000)), sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs.args,callback);
           }
         } else { //没参数
-          this.validateContractCall(this.addressInfo.address, Number(Times(this.callForm.values, 100000000)), sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs);
+          this.validateContractCall(this.addressInfo.address, Number(Times(this.callForm.values, 100000000)), sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs,callback);
         }
       },
 
@@ -255,19 +272,20 @@
        * @param methodDesc
        * @param args
        */
-      async validateContractCall(sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args) {
-        return await this.$post('/', 'validateContractCall', [sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args])
+      async validateContractCall(sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args,callback) {
+      //return await post('/','validateContractCall',[sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args])
+          PARAMETER.method = 'validateContractCall';
+          PARAMETER.params =  [chainID(),sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args];
+          return axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            //console.log(response);
-            if (response.hasOwnProperty("result")) {
-              //return {success: true, data: response.result};
-              this.imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args)
-            } else {
-              this.$message({message: this.$t('call.call6') + response, type: 'error', duration: 1000});
+            if(response.data.hasOwnProperty("result") && response.data.result.success){
+               this.imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args,callback);
+            }else {
+              this.$message({message: this.$t('call.call6') + response.data.error.message, type: 'error', duration: 2000});
             }
           })
           .catch((error) => {
-            this.$message({message: this.$t('call.call7') + error, type: 'error', duration: 1000});
+            this.$message({message: this.$t('call.call7') + error, type: 'error', duration: 2000});
           });
       },
 
@@ -280,11 +298,14 @@
        * @param methodDesc
        * @param args
        */
-      async imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args) {
-        return await this.$post('/', 'imputedContractCallGas', [sender, value, contractAddress, methodName, methodDesc, args])
+      async imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args,callback) {
+          // return await post('/','imputedContractCallGas',[sender, value, contractAddress, methodName, methodDesc, args])
+          PARAMETER.method = 'imputedContractCallGas';
+          PARAMETER.params =  [chainID(),sender, value, contractAddress, methodName, methodDesc, args];
+          return axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            if (response.hasOwnProperty("result")) {
-              this.callForm.gas = response.result.gasLimit;
+            if (response.data.hasOwnProperty("result")) {
+              this.callForm.gas = response.data.result.gasLimit;
               let contractConstructorArgsTypes = this.getContractMethodArgsTypes(contractAddress, methodName);
               let newArgs = utils.twoDimensionalArray(args, contractConstructorArgsTypes);
               this.contractCallData = {
@@ -298,12 +319,15 @@
                 methodDesc: methodDesc,
                 args: newArgs
               };
+              if(callback instanceof Function){
+                callback();
+              }
             } else {
-              this.$message({message: this.$t('call.call4') + response, type: 'error', duration: 1000});
+              this.$message({message: this.$t('call.call4') + response.data.error.message, type: 'error', duration: 2000});
             }
           })
           .catch((error) => {
-            this.$message({message: this.$t('call.call5') + error, type: 'error', duration: 1000});
+            this.$message({message: this.$t('call.call5') + error, type: 'error', duration: 2000});
           });
       },
 
@@ -313,12 +337,14 @@
        * @param  methodName
        */
       async getContractMethodArgsTypes(contractAddress, methodName) {
-        return await this.$post('/', 'getContractMethodArgsTypes', [contractAddress, methodName])
+        PARAMETER.method = 'getContractMethodArgsTypes';
+        PARAMETER.params =  [chainID(),contractAddress, methodName];
+        return axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            if (response.hasOwnProperty("result")) {
-              return {success: true, data: response.result};
+            if (response.data.hasOwnProperty("result")) {
+              return {success: true, data: response.data.result};
             } else {
-              return {success: false, data: response.error};
+              return {success: false, data: response.data.error};
             }
           })
           .catch((error) => {
@@ -334,15 +360,29 @@
        **/
       getBalanceByAddress(assetChainId, assetId, address) {
         getNulsBalance(assetChainId, assetId, address).then((response) => {
-          //console.log(response);
           if (response.success) {
             this.balanceInfo = response.data;
           } else {
-            this.$message({message: this.$t('public.err2') + response, type: 'error', duration: 1000});
+            this.$message({message: this.$t('public.err2') + response, type: 'error', duration: 2000});
           }
         }).catch((error) => {
           console.log(error);
-          this.$message({message: this.$t('public.err3') + error, type: 'error', duration: 1000});
+          this.$message({message: this.$t('public.err3') + error, type: 'error', duration: 2000});
+        });
+      },
+
+      async callContract(assetChainId,assetId, sender,password, contractAddress, value, methodName, methodDesc, args, gasLimit, price,remark){
+        PARAMETER.method = 'callContract';
+        PARAMETER.params = [chainID(), assetChainId,assetId, sender,password, contractAddress, value, methodName, methodDesc, args, gasLimit, price,remark];
+        axios.post(LOCALHOST_API_URL, PARAMETER)
+          .then((response) => {
+          if (response.data.hasOwnProperty('result')) {
+            this.callResult=this.$t('call.call11') + response.data.result.txHash;
+           }else{
+           this.$message({message: this.$t('call.call12')+ response.data.error.message, type: 'error', duration: 2000});
+           }
+          }).catch((err) => {
+              console.log(err)
         });
       },
 
@@ -350,62 +390,17 @@
        *  获取密码框的密码
        * @param password
        **/
-      async passSubmit(password) {
-        const pri = nuls.decrypteOfAES(this.addressInfo.aesPri, password);
-        const newAddressInfo = nuls.importByKey(2, pri, password);
-        if (newAddressInfo.address === this.addressInfo.address) {
-          //console.log(this.contractCallData);
-          let pub = this.addressInfo.pub;
-          let amount = Number(Times(this.callForm.gas, this.callForm.price));
-          amount = Number(Plus(this.callForm.values, amount));
-          let transferInfo = {
-            fromAddress: this.addressInfo.address,
-            assetsChainId: chainID(),
-            assetsId: 1,
-            amount: amount,
-            fee: 100000
-          };
-          if (this.callForm.values > 0) {
-            transferInfo.toAddress = this.contractAddress;
-            transferInfo.value = Number(Times(this.callForm.values, 100000000));
-            transferInfo.amount = Number(Plus(transferInfo.value,amount))
+      async confirmCall(password) {
+      let newArgs = [];
+      if (this.callForm.parameterList.length > 0) {
+          let newArgs = getArgs(this.callForm.parameterList);
+          if (newArgs.allParameter) {
+            this.callContract(chainID(), 1, this.addressInfo.address, password, this.contractAddress, Number(Times(this.callForm.values, 100000000)),this.selectionData.name, this.selectionData.desc, newArgs.args, this.callForm.gas, this.callForm.price, this.callForm.addtion);
           }
-          let remark = '';
-          let inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 16);
-          let tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 16, this.contractCallData);
-          let txhex = '';
-          //获取手续费
-          let newFee = countFee(tAssemble, 1);
-          //console.log(this.balanceInfo);
-          //手续费大于0.001的时候重新组装交易及签名
-          if (transferInfo.fee !== newFee) {
-            transferInfo.fee = newFee;
-            inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 16);
-            tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 16, this.contractCallData);
-            txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
-          } else {
-            txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
-          }
-          //console.log(txhex);
-          //验证并广播交易
-          await validateAndBroadcast(txhex).then((response) => {
-            //console.log(response);
-            if (response.success) {
-              this.callResult = response
-            } else {
-              if (response.data.code === 'err_0014') {
-                this.$message({message: response.data.message, type: 'error', duration: 3000});
-              } else {
-                this.$message({message: this.$t('error.' + response.data.code), type: 'error', duration: 3000});
-              }
-            }
-          }).catch((err) => {
-            this.$message({message: this.$t('public.err1') + err, type: 'error', duration: 1000});
-          });
-        } else {
-          this.$message({message: this.$t('address.address13'), type: 'error', duration: 1000});
-        }
+      }else{
+       this.callContract(chainID(), 1, this.addressInfo.address, password, this.contractAddress, Number(Times(this.callForm.values, 100000000)),this.selectionData.name, this.selectionData.desc, newArgs, this.callForm.gas, this.callForm.price, this.callForm.addtion);
       }
+      },
 
     }
   }

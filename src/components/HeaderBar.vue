@@ -7,11 +7,12 @@
       <div class="nav">
         <el-menu mode="horizontal" :default-active="navActives($route.path)" @select="handleSelect">
           <!--<el-menu-item index="home">{{$t('nav.wallet')}}</el-menu-item>-->
-          <el-menu-item index="contract" :disabled="addressList.length === 0">{{$t('nav.contracts')}}</el-menu-item>
+          <el-menu-item index="contract" :disabled="defaultAddress ===''||defaultAddress ===null">{{$t('nav.contracts')}}</el-menu-item>
         </el-menu>
       </div>
       <div class="tool">
         <el-menu mode="horizontal" :default-active="navActive" @select="handleSelect">
+        <!--
           <el-submenu index="address" class="user" :disabled="addressList.length === 0">
             <template slot="title"><i class="iconfont iconzhanghu"></i></template>
             <el-menu-item v-for="item of addressList" :key="item.address" :index="item.address">
@@ -20,6 +21,7 @@
                     v-show="item.alias">{{item.alias}} | </span><span>{{item.balance}}</span>
             </el-menu-item>
           </el-submenu>
+         -->
           <el-submenu index="set">
             <template slot="title">{{$t('nav.set')}}</template>
             <el-menu-item index="address">{{$t('nav.addressList')}}</el-menu-item>
@@ -43,8 +45,10 @@
 </template>
 
 <script>
+import axios from 'axios'
   import logoSvg from './../assets/img/logo-beta.svg'
-  import {superLong, chainIdNumber, addressInfo} from '@/api/util'
+  import {superLong, chainID,chainIdNumber} from '@/api/util'
+import {LOCALHOST_API_URL} from '@/config.js'
 
   export default {
     data() {
@@ -58,12 +62,13 @@
     },
     components: {},
     created() {
-      this.getAddressList();
+        this.getAddressList();
     },
     mounted() {
-      /* setInterval(() => {
-         this.getAddressList();
-       }, 500)*/
+       setInterval(() => {
+         this.defaultAddress = localStorage.getItem(chainIdNumber());
+       }, 500);
+
     },
     methods: {
 
@@ -111,13 +116,46 @@
        * 获取账户列表
        */
       async getAddressList() {
-        this.addressList = await addressInfo();
-        if (this.addressList) {
-          for (let item  of this.addressList) {
-            item.addresss = superLong(item.address, 8);
+        let parameter={};
+        let addressList = [];
+        let isExist=false;
+        parameter.method = 'getAccountList';
+        parameter.params = [chainID(), 1, 10];
+        parameter.id=54898;
+        parameter.jsonrpc= '2.0';
+       await axios.post(LOCALHOST_API_URL, parameter).then((response) => {
+             if (response.data.hasOwnProperty('result')) {
+               addressList = response.data.result.list;
+             }
+          }).catch((err) => {
+            console.log(err)
+          });
+
+          if (addressList.length>0) {
+            this.defaultAddress = localStorage.getItem(chainIdNumber());
+            for (let item  of addressList) {
+              item.addresss = superLong(item.address, 8);
+              if(item.addresss == this.defaultAddress){
+                isExist=true;
+              }
+            }
+            if(!isExist){
+                localStorage.removeItem(chainIdNumber());
+                this.defaultAddress ='';
+            }
+           if(this.defaultAddress==''||this.defaultAddress==null||!isExist){
+             this.$router.push({
+                   name: "address"
+             })
           }
-        }
-        this.defaultAddress = localStorage.getItem(chainIdNumber());
+          }else{
+          localStorage.removeItem(chainIdNumber());
+          this.defaultAddress ='';
+          this.$router.push({
+                name: "newAddress",
+                query: {'address': ''}
+            })
+          }
       },
 
       /**

@@ -9,12 +9,13 @@
     </div>
     <div class="w1200 mt_20 bg-white set_info">
       <div class="tc mzt_20">
-        <h4 class="font24 mb_20">NULS Wallet</h4>
+        <h4 class="font24 mb_20">{{$t('public.platform-name')}}</h4>
         <!--<p class="font16">{{$t('public.logInfo')}}: <span class="click" @click="seeLog">{{$t('public.see')}}</span></p>-->
         <ul>
+          <li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{$t('public.platform-desc')}}</li>
           <li v-show="RUN_PATTERN"><span>{{$t('public.operatingSystem')}}:</span>{{system}}</li>
           <li v-show="RUN_PATTERN"><span>{{$t('public.logInfo')}}:</span>{{logUrl}}</li>
-          <li><span>{{$t('public.version')}}:</span>Beta-{{version}}</li>
+         <!-- <li style="color:#F00"><span >{{$t('public.version')}}:</span>{{versionInfo}}</li> -->
         </ul>
         <el-button type="success" @click="checkUpdate" v-show="RUN_PATTERN">{{$t('public.checkUpdates')}}</el-button>
       </div>
@@ -55,6 +56,7 @@
       };
     },
     created() {
+      this.getVersionInfo();
       this.seeLog();
 
     },
@@ -109,7 +111,7 @@
           let num = str.lastIndexOf(temp);
           this.logUrl = str.slice(0, num) + '/wallet_web_log';
         }
-      }
+      },
     }
   }
 </script>

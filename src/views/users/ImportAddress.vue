@@ -45,7 +45,7 @@
 <script>
   import BackBar from '@/components/BackBar'
   import Password from '@/components/PasswordBar'
-  import {chainID, defaultAddressInfo, localStorageByAddressInfo} from '@/api/util'
+  import {chainID, defaultAddressInfo,chainIdNumber} from '@/api/util'
   import {RUN_PATTERN, LOCALHOST_API_URL, PARAMETER} from '@/config.js'
   import axios from 'axios'
 
@@ -61,7 +61,8 @@
       let validatePass = (rule, value, callback) => {
         let patrn = /^(?![\d]+$)(?![a-zA-Z]+$)(?![^\da-zA-Z]+$).{8,20}$/;
         if (value === '') {
-          callback(new Error(this.$t('importAddress.importAddress10')));
+          //callback(new Error(this.$t('importAddress.importAddress10')));
+           callback();
         } else if (!patrn.exec(value)) {
           callback(new Error(this.$t('importAddress.importAddress11')));
         } else {
@@ -73,7 +74,8 @@
       };
       let validateCheckPass = (rule, value, callback) => {
         if (value === '') {
-          callback(new Error(this.$t('importAddress.importAddress12')));
+         // callback(new Error(this.$t('importAddress.importAddress12')));
+           callback();
         } else if (value !== this.importKeyForm.pass) {
           callback(new Error(this.$t('importAddress.importAddress13')));
         } else {
@@ -122,11 +124,10 @@
         PARAMETER.params = [chainID(), this.importKeyForm.key, password, true];
         axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            //console.log(response.data);
             if (response.data.hasOwnProperty('result')) {
               let newImportAddressInfo = defaultAddressInfo;
               newImportAddressInfo.address = response.data.result.address;
-              localStorageByAddressInfo(newImportAddressInfo);
+               localStorage.setItem(chainIdNumber(), newImportAddressInfo.address);
               this.toUrl('address')
             }
           }).catch((err) => {
@@ -153,20 +154,20 @@
        */
       importWallet() {
         PARAMETER.method = 'importAccountByPriKey';
-        PARAMETER.params = [chainID(), this.keystoreInfo.key, this.keystoreInfo.pass, true];
+        PARAMETER.params = [chainID(), this.importKeyForm.key, this.importKeyForm.pass, true];
         axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
-            //console.log(response.data);
             if (response.data.hasOwnProperty('result')) {
               let newImportAddressInfo = defaultAddressInfo;
               newImportAddressInfo.address = response.data.result.address;
-              localStorageByAddressInfo(newImportAddressInfo);
+               localStorage.setItem(chainIdNumber(), newImportAddressInfo.address);
               this.toUrl('address')
+            }else{
+                this.$message({message: this.$t('importAddress.importAddress18')+response.data.error.message, type: 'error', duration: 1000});
             }
           }).catch((err) => {
           console.log(err)
         });
-        this.toUrl('address')
       },
 
       /**

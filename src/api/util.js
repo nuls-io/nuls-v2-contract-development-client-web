@@ -1,6 +1,6 @@
 import {BigNumber} from 'bignumber.js'
 import copy from 'copy-to-clipboard'
-import {explorerUrl, LOCALHOST_API_URL, PARAMETER} from '@/config.js'
+import {explorerUrl,PARAMETER,LOCALHOST_API_URL} from '@/config.js'
 import axios from 'axios'
 
 /**
@@ -96,7 +96,6 @@ export async function addressInfo() {
   PARAMETER.params = [chainID(), 1, 10];
   await axios.post(LOCALHOST_API_URL, PARAMETER)
     .then((response) => {
-      //console.log(response.data);
       if (response.data.hasOwnProperty('result')) {
         for (let item of response.data.result.list) {
           item.balance = timesDecimals(item.balance);
@@ -109,6 +108,15 @@ export async function addressInfo() {
   return accountList;
 }
 
+/**
+ * 获取地址的智能合约列表
+ * @param address 账户地址
+ * @returns {*}
+ */
+export function myContractList(address) {
+  let contractList = localStorage.hasOwnProperty(address) ? JSON.parse(localStorage.getItem(address)) : [];
+  return contractList
+}
 /**
  * 超长数字显示
  * @param nu
@@ -159,6 +167,22 @@ export function timeDifference(dateBegin) {
 }
 
 /**
+ * 时间戳转化成日期格式
+ * @param timestamp
+ * @returns {string}
+ */
+export function timestampToTime(timestamp) {
+  let date = new Date(timestamp * 1000);//时间戳为10位需*1000，时间戳为13位的话不需乘1000
+  let Y = date.getFullYear() + '-';
+  let M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
+  let D = (date.getDate() < 10 ? '0'+date.getDate() : date.getDate()) + ' ';
+  let h = (date.getHours() < 10 ? '0'+date.getHours() : date.getHours()) + ':';
+  let m = (date.getMinutes() < 10 ? '0'+date.getMinutes() : date.getMinutes()) + ':';
+  let s = (date.getSeconds() < 10 ? '0'+date.getSeconds() : date.getSeconds());
+  return Y+M+D+h+m+s;
+}
+
+/**
  * 根据不同时区显示时间
  * @param time
  * @returns {*}
@@ -185,15 +209,22 @@ export function getLocalTime(time) {
  */
 export function getArgs(parameterList) {
   let newArgs = [];
-  let allParameter = false;
+  let allParameter = true;
   if (parameterList.length !== 0) {
     //循环获取必填参数
     for (let itme of parameterList) {
-      if (itme.required && itme.value) {
-        allParameter = true;
-        newArgs.push(itme.value)
-      } else {
-        allParameter = false
+      if(itme.required){
+        if(itme.value){
+          newArgs.push(itme.value);
+        }else{
+          allParameter = false
+        }
+      }else{
+        if(itme.value==undefined){
+          newArgs.push("");
+        }else{
+          newArgs.push(itme.value);
+        }
       }
     }
     if (allParameter) {

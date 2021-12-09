@@ -12,9 +12,9 @@
       <div class="card_long">
         <h5 class="card-title font18">
           {{$t('public.basicData')}}
-          <span class="font14 fr fred click" v-show="isCancel" @click="cancelContract">
+         <!-- <span class="font14 fr fred click" v-show="isCancel" @click="cancelContract">
             {{$t('contractInfo.contractInfo1')}}
-          </span>
+          </span> -->
         </h5>
         <ul>
           <li>{{$t('public.usableBalance')}}<label>{{contractInfo.balance}}<span
@@ -34,33 +34,43 @@
         </ul>
       </div>
       <div class="cb"></div>
-      <el-tabs v-model="activeName" @tab-click="handleClick">
+      <el-tabs v-model="activeName" @tab-click="handleClick" style="margin-bottom:100px">
         <el-tab-pane :label="$t('home.home2')" name="first">
+        <!--
           <SelectBar v-model="contractsTypeRegion" :typeOptions="contractsStatusOptions" typeName="type"
                      @change="changeType">
           </SelectBar>
-
+        -->
           <el-table :data="contractTxData" stripe border style="width: 100%;margin-top: 14px">
             <el-table-column label="" width="30">
             </el-table-column>
-            <el-table-column prop="height" :label="$t('public.height')" width="180" align="left">
+            <el-table-column prop="height" :label="$t('public.height')" width="80" align="left">
               <template slot-scope="scope">
                 <span class="cursor-p click">{{ scope.row.blockHeight }}</span>
               </template>
             </el-table-column>
-            <el-table-column prop="height" :label="$t('contractInfo.contractInfo5')" width="180" align="left">
+            <el-table-column prop="height" :label="$t('contractInfo.contractInfo5')" width="100" align="left">
               <template slot-scope="scope"><span>{{ $t('type.'+scope.row.type) }}</span></template>
             </el-table-column>
-            <el-table-column label="TXID" min-width="280" align="left">
+            <el-table-column prop="height" :label="$t('contractInfo.contractInfo6')" width="180" align="left">
+              <template slot-scope="scope"><span>{{scope.row.contractMethod}}</span></template>
+            </el-table-column>
+             <el-table-column prop="height" :label="$t('contractInfo.contractInfo15')" width="80" align="left">
+                <template slot-scope="scope"><span class="click" @click="showContractArgs(scope.row.txHash,scope.row.type)">View</span></template>
+             </el-table-column>
+            <el-table-column label="TXID" min-width="300" align="left">
               <template slot-scope="scope">
                 <span class="cursor-p click td" @click="toUrl('transactionInfo',scope.row.txHash,1)">
                   {{ scope.row.txHashs }}
                 </span>
               </template>
             </el-table-column>
-            <el-table-column prop="time" :label="$t('public.time')" width="180" align="left">
+             <el-table-column prop="height" :label="$t('contractInfo.contractInfo16')" width="80" align="left">
+                <template slot-scope="scope"><span class="click" @click="showContractResult(scope.row.txHash)">View</span></template>
+             </el-table-column>
+            <el-table-column prop="time" :label="$t('public.time')" width="160" align="left">
             </el-table-column>
-            <el-table-column :label="$t('public.fee')" width="180" align="left">
+            <el-table-column :label="$t('public.fee')" width="140" align="left">
               <template slot-scope="scope">{{scope.row.fees}}</template>
             </el-table-column>
           </el-table>
@@ -90,7 +100,9 @@
             </el-table-column>
             <el-table-column prop="height" :label="$t('contractInfo.contractInfo7')" min-width="280" align="left">
               <template slot-scope="scope">
-                <span v-for="item in scope.row.params" :key="item.name">{{item.name}}-</span>
+                <span v-for="item in scope.row.params" :key="item.name">
+                      {"type":"{{item.type}}","name":"{{item.name}}","required":{{item.required}}}-
+                </span>
               </template>
             </el-table-column>
             <el-table-column prop="returnType" :label="$t('contractInfo.contractInfo8')" width="280" align="left">
@@ -104,7 +116,29 @@
           </div>
         </el-tab-pane>
       </el-tabs>
+      <!-- 展示合约参数 -->
+    <el-dialog title="" :visible.sync="viewArgsDialog" class="dialog_tran">
+      <div class="dialog-info scroll">
+          <json-viewer
+                  :value="contractArgs"
+                  :expand-depth="5"
+                  copyable
+                  boxed
+          ></json-viewer>
+      </div>
+    </el-dialog>
 
+     <!-- 展示合约结果 -->
+      <el-dialog title="" :visible.sync="viewResultDialog" class="dialog_tran">
+        <div class="dialog-info scroll">
+            <json-viewer
+                    :value="contractResult"
+                    :expand-depth="5"
+                    copyable
+                    boxed
+            ></json-viewer>
+        </div>
+      </el-dialog>
     </div>
     <Password ref="password" @passwordSubmit="passSubmit"></Password>
   </div>
@@ -115,11 +149,13 @@
   import nuls from 'nuls-sdk-js'
   import moment from 'moment'
   import BackBar from '@/components/BackBar'
-  import SelectBar from '@/components/SelectBar';
+ // import SelectBar from '@/components/SelectBar';
   import Call from './Call'
-  import {timesDecimals, getLocalTime, superLong, addressInfo,connectToExplorer,chainIdNumber} from '@/api/util'
+  import {timesDecimals, getLocalTime, superLong, connectToExplorer,chainIdNumber,chainID} from '@/api/util'
   import {getNulsBalance, inputsOrOutputs, validateAndBroadcast} from '@/api/requestData'
   import Password from '@/components/PasswordBar'
+  import {LOCALHOST_API_URL, PARAMETER} from '@/config.js'
+  import axios from 'axios'
 
   export default {
     data() {
@@ -146,7 +182,10 @@
         modelData: [],//合约方法列表
         decimals:0,//合约精度系数
         defaultAddress: '',//默认地址
-
+        viewArgsDialog: false, //合约参数数据显示
+        viewResultDialog: false, //合约结果数据显示
+        contractArgs:'',//合约参数
+        contractResult:'',//合约结果
       };
     },
     created() {
@@ -158,16 +197,17 @@
       this.contractTxList(this.pageIndex, this.pageSize, 0, this.contractAddress);
       setInterval(() => {
         this.defaultAddress = localStorage.getItem(chainIdNumber());
-      }, 500);
+        this.contractInfoByAddress(this.contractAddress);
+        this.contractTxList(this.pageIndex, this.pageSize, 0, this.contractAddress);
+      }, 8000);
     },
     beforeDestroy() {
 
     },
     components: {
       BackBar,
-      SelectBar,
       Call,
-      Password
+      Password,
     },
     watch: {
       addressInfo(val, old) {
@@ -180,8 +220,8 @@
     },
     methods: {
 
-      handleClick(tab, event) {
-        console.log(tab, event);
+      handleClick(tab) {
+        console.log(tab.name);
       },
 
       /**
@@ -191,12 +231,26 @@
       async contractInfoByAddress(address) {
         await this.$post('/', 'getContract', [address])
           .then((response) => {
-            //console.log(response);
             if (response.hasOwnProperty("result")) {
               response.result.createTxHashs = superLong(response.result.createTxHash, 5);
               response.result.balance = timesDecimals(response.result.balance);
               this.contractInfo = response.result;
-              this.modelData = response.result.methods;
+              //解决重载的问题
+              for(let item in response.result.methods){
+                response.result.methods[item].keys=item;
+              }
+              this.modelData = (function () {
+                  var methodsFilter=[];
+                  var methods =response.result.methods;
+                   for(var i=0;i<methods.length;i++){
+                       if(methods[i].name!='<init>'){
+                            if( methods[i].name!='_payable' ||(methods[i].name=='_payable' && methods[i].params.length==0)){
+                                  methodsFilter.push(methods[i]);
+                            }
+                       }
+                    }
+                    return methodsFilter;
+               })();
               this.decimals = response.result.decimals;
               this.modeList = response.result.methods;
               this.isCancel = this.addressInfo.address === this.contractInfo.creater
@@ -223,7 +277,6 @@
       async contractTxList(pageIndex, pageSize, type, address) {
         await this.$post('/', 'getContractTxList', [pageIndex, pageSize, type, address])
           .then((response) => {
-            //console.log(response);
             if (response.hasOwnProperty("result")) {
               for (let item of response.result.list) {
                 item.time = moment(getLocalTime(item.time * 1000)).format('YYYY-MM-DD HH:mm:ss');
@@ -336,7 +389,6 @@
           let inOrOutputs = await inputsOrOutputs(transferInfo, this.balanceInfo, 17);
           let tAssemble = await nuls.transactionAssemble(inOrOutputs.data.inputs, inOrOutputs.data.outputs, remark, 17, contractDelete);
           let txhex = await nuls.transactionSerialize(pri, pub, tAssemble);
-          //console.log(txhex);
           //验证并广播交易
           await validateAndBroadcast(txhex).then((response) => {
             if (response.success) {
@@ -362,7 +414,6 @@
        * @param type
        */
       toUrl(name,params, type = 0) {
-        //console.log(name)
         if (type === 0) {
           let newQuery = {hash: params};
           this.$router.push({
@@ -372,6 +423,40 @@
         } else {
           connectToExplorer(name,params)
         }
+      },
+
+      showContractArgs(txHash,type){
+        PARAMETER.method = 'getContractExecuteArgsInfo';
+        PARAMETER.params =[chainID(),txHash, type];
+        axios.post(LOCALHOST_API_URL, PARAMETER)
+          .then((response) => {
+            if (response.data.hasOwnProperty("result")) {
+              this.contractArgs = response.data.result.args;
+            } else {
+              this.contractArgs =this.$t('transaciontInfo.info1');
+            }
+              this.viewArgsDialog = true;
+          })
+          .catch((error) => {
+            this.$message({message: this.$t('transaciontInfo.info1') + error, type: 'error', duration: 2000});
+          });
+      },
+
+      showContractResult(txHash){
+        PARAMETER.method = 'getContractExecuteResultInfo';
+        PARAMETER.params =[chainID(),txHash];
+        axios.post(LOCALHOST_API_URL, PARAMETER)
+          .then((response) => {
+            if (response.data.hasOwnProperty("result")) {
+              this.contractResult = response.data.result.contractResult;
+            } else {
+              this.contractResult =this.$t('transaciontInfo.info1');
+            }
+           this.viewResultDialog = true;
+          })
+          .catch((error) => {
+            this.$message({message: this.$t('transaciontInfo.info1') + error, type: 'error', duration: 2000});
+          });
       },
 
     }

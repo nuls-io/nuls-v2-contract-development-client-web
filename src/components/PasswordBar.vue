@@ -26,16 +26,12 @@
     props: {},
     data() {
       let validatePass = (rule, value, callback) => {
-        if (value === '') {
-          callback(new Error(this.$t('password.password1')))
-        } else {
-          callback()
-        }
+            callback()
       };
       return {
         passwordVisible: false,
         passwordForm: {
-          password: 'nuls123456',
+          password: '',
         },
         passwordRules: {
           password: [
