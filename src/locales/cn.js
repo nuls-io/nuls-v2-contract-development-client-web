@@ -806,9 +806,11 @@ const cn = {
     "contractInfo11":"获取合约交易列表失败:",
     "contractInfo12":"获取合约交易列表异常:",
     "contractInfo13":"验证删除合约失败:",
-    "contractInfo14":"contractInfo",
+    "contractInfo14":"ContractInfo",
     "contractInfo15":"合约参数",
     "contractInfo16":"合约结果",
+    "contractInfo17":"Payable",
+    "contractInfo18":"PayableMultyAsset",
   },
 
   "transaciontInfo":{

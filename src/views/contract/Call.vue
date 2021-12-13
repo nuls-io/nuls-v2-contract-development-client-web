@@ -140,14 +140,20 @@
       Password,
     },
     created() {
-      this.addressInfo.address = localStorage.getItem(chainIdNumber());
+      this.addressInfo = JSON.parse(localStorage.getItem(chainIdNumber()));
+      if (!this.addressInfo) {
+        this.addressInfo = {};
+      }
       if(this.addressInfo.address){
         this.getBalanceByAddress(chainID(), 1, this.addressInfo.address);
       }
     },
     mounted() {
       setInterval(() => {
-        this.defaultAddress = localStorage.getItem(chainIdNumber());
+        let info = JSON.parse(localStorage.getItem(chainIdNumber()));
+        if (info && info.address) {
+          this.defaultAddress = info.address;
+        }
       }, 500);
     },
     watch: {
@@ -219,7 +225,11 @@
        * 展示密码窗口
        **/
      showPassword(){
-        this.$refs.password.showPassword(true);
+        if (this.addressInfo.encrypted) {
+          this.$refs.password.showPassword(true);
+        } else {
+          this.confirmCall();
+        }
      },
 
       /**
@@ -277,7 +287,7 @@
           PARAMETER.method = 'validateContractCall';
           PARAMETER.params =  [chainID(),sender, value, gasLimit, price, contractAddress, methodName, methodDesc, args];
           return axios.post(LOCALHOST_API_URL, PARAMETER)
-          .then((response) => {
+          .then(async (response) => {
             if(response.data.hasOwnProperty("result") && response.data.result.success){
                this.imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args,callback);
             }else {
@@ -303,11 +313,11 @@
           PARAMETER.method = 'imputedContractCallGas';
           PARAMETER.params =  [chainID(),sender, value, contractAddress, methodName, methodDesc, args];
           return axios.post(LOCALHOST_API_URL, PARAMETER)
-          .then((response) => {
+          .then(async (response) => {
             if (response.data.hasOwnProperty("result")) {
               this.callForm.gas = response.data.result.gasLimit;
-              let contractConstructorArgsTypes = this.getContractMethodArgsTypes(contractAddress, methodName);
-              let newArgs = utils.twoDimensionalArray(args, contractConstructorArgsTypes);
+              let argsTypes = await this.getContractMethodArgsTypes(contractAddress, methodName, methodDesc);
+              let newArgs = utils.twoDimensionalArray(args, argsTypes.data.argsTypes);
               this.contractCallData = {
                 chainId: chainID(),
                 sender: sender,
@@ -336,9 +346,9 @@
        * @param contractAddress
        * @param  methodName
        */
-      async getContractMethodArgsTypes(contractAddress, methodName) {
+      async getContractMethodArgsTypes(contractAddress, methodName, methodDesc) {
         PARAMETER.method = 'getContractMethodArgsTypes';
-        PARAMETER.params =  [chainID(),contractAddress, methodName];
+        PARAMETER.params =  [chainID(),contractAddress, methodName, methodDesc];
         return axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
             if (response.data.hasOwnProperty("result")) {
@@ -391,15 +401,15 @@
        * @param password
        **/
       async confirmCall(password) {
-      let newArgs = [];
-      if (this.callForm.parameterList.length > 0) {
-          let newArgs = getArgs(this.callForm.parameterList);
-          if (newArgs.allParameter) {
-            this.callContract(chainID(), 1, this.addressInfo.address, password, this.contractAddress, Number(Times(this.callForm.values, 100000000)),this.selectionData.name, this.selectionData.desc, newArgs.args, this.callForm.gas, this.callForm.price, this.callForm.addtion);
-          }
-      }else{
-       this.callContract(chainID(), 1, this.addressInfo.address, password, this.contractAddress, Number(Times(this.callForm.values, 100000000)),this.selectionData.name, this.selectionData.desc, newArgs, this.callForm.gas, this.callForm.price, this.callForm.addtion);
-      }
+        let newArgs = [];
+        if (this.callForm.parameterList.length > 0) {
+            let newArgs = getArgs(this.callForm.parameterList);
+            if (newArgs.allParameter) {
+              this.callContract(chainID(), 1, this.addressInfo.address, password, this.contractAddress, Number(Times(this.callForm.values, 100000000)),this.selectionData.name, this.selectionData.desc, newArgs.args, this.callForm.gas, this.callForm.price, this.callForm.addtion);
+            }
+        }else{
+            this.callContract(chainID(), 1, this.addressInfo.address, password, this.contractAddress, Number(Times(this.callForm.values, 100000000)),this.selectionData.name, this.selectionData.desc, newArgs, this.callForm.gas, this.callForm.price, this.callForm.addtion);
+        }
       },
 
     }

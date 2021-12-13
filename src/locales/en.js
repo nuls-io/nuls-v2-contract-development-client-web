@@ -825,9 +825,11 @@ const en = {
     "contractInfo11": "Failed to obtain contract transaction list:",
     "contractInfo12": "Get contract transaction list exception:",
     "contractInfo13": "Failed to verify deletion contract:",
-    "contractInfo14": "contractInfo",
+    "contractInfo14": "ContractInfo",
     "contractInfo15":"Contract parameters",
     "contractInfo16":"Contract result",
+    "contractInfo17":"Payable",
+    "contractInfo18":"PayableMultyAsset",
   },
 
   "transaciontInfo":{

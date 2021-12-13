@@ -278,6 +278,7 @@ export const defaultAddressInfo = {
   totalReward: 0,//总奖励
   tokens: [],//代币列表
   contractList: [],//合约列表（收藏的合约）
+  encrypted: true // 私钥是否加密
 };
 
 //地址信息写入localStorage
