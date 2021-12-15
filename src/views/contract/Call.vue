@@ -37,14 +37,14 @@
       </div>
 
       <el-form-item class="search-submit">
-        <el-button type="success" @click="submitCallContract('callForm')">{{$t('contract.contract4')}}</el-button>
+        <el-button type="success" @click="submitCallContract('callForm')" v-loading="load" :disabled="load">{{$t('contract.contract4')}}</el-button>
       </el-form-item>
     </el-form>
     <div class="cb"></div>
     <div class="w630 bg-gray wordwrap result" v-if="callResult">
       {{callResult}}
     </div>
-    <Password ref="password" @passwordSubmit="confirmCall">
+    <Password ref="password" @passwordSubmit="confirmCallWrapper">
     </Password>
   </div>
 </template>
@@ -129,6 +129,7 @@
         contractCallData: {},//调用合约data
         callResult: '',//调用合约结果
         defaultAddress: '',//默认地址
+        load: false
       };
     },
     props: {
@@ -149,6 +150,7 @@
       }
     },
     mounted() {
+      //todo 检查所有的定时查询
       setInterval(() => {
         let info = JSON.parse(localStorage.getItem(chainIdNumber()));
         if (info && info.address) {
@@ -199,22 +201,24 @@
        * @param formName
        **/
       submitCallContract(formName) {
-        this.$refs[formName].validate((valid) => {
+        this.$refs[formName].validate(async (valid) => {
           if (valid) {
+            this.load = true;
             if (this.selectionData.view) {  //不上链方法
               let newArgs = [];
               if (this.callForm.parameterList.length > 0) { //有参数
                 newArgs = getArgs(this.callForm.parameterList, this.decimals);
                 if (newArgs.allParameter) {
-                  this.methodCall(this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs.args)
+                  await this.methodCall(this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs.args)
                 }
               } else { //没参数
-                this.methodCall(this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs)
+                await this.methodCall(this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs)
               }
             } else { //上链方法
-              this.chainMethodCall(this.showPassword);
+              await this.chainMethodCall(this.showPassword);
             // this.$refs.password.showPassword(true);
             }
+            this.load = false;
           } else {
             return false;
           }
@@ -224,11 +228,11 @@
       /**
        * 展示密码窗口
        **/
-     showPassword(){
+     async showPassword(){
         if (this.addressInfo.encrypted) {
           this.$refs.password.showPassword(true);
         } else {
-          this.confirmCall();
+          await this.confirmCall();
         }
      },
 
@@ -242,7 +246,7 @@
       async methodCall(contractAddress, methodName, methodDesc, args) {
         PARAMETER.method = 'invokeContractViewMethod';
         PARAMETER.params =[chainID(),contractAddress, methodName, methodDesc, args];
-        axios.post(LOCALHOST_API_URL, PARAMETER)
+        await axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
             if (response.data.hasOwnProperty("result")) {
               this.callResult = response.data.result.methodReturn;
@@ -258,16 +262,16 @@
       /**
        * 上链方法调用
        */
-      chainMethodCall(callback) {
+      async chainMethodCall(callback) {
         let newArgs = [];
         this.callForm.price = sdk.CONTRACT_MINIMUM_PRICE;
         if (this.callForm.parameterList.length > 0) { //有参数
           newArgs = getArgs(this.callForm.parameterList, this.decimals);
           if (newArgs.allParameter) {
-            this.validateContractCall(this.addressInfo.address, Number(Times(this.callForm.values, 100000000)), sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs.args,callback);
+            await this.validateContractCall(this.addressInfo.address, Number(Times(this.callForm.values, 100000000)), sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs.args,callback);
           }
         } else { //没参数
-          this.validateContractCall(this.addressInfo.address, Number(Times(this.callForm.values, 100000000)), sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs,callback);
+          await this.validateContractCall(this.addressInfo.address, Number(Times(this.callForm.values, 100000000)), sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs,callback);
         }
       },
 
@@ -289,7 +293,7 @@
           return axios.post(LOCALHOST_API_URL, PARAMETER)
           .then(async (response) => {
             if(response.data.hasOwnProperty("result") && response.data.result.success){
-               this.imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args,callback);
+               await this.imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args,callback);
             }else {
               this.$message({message: this.$t('call.call6') + response.data.error.message, type: 'error', duration: 2000});
             }
@@ -330,7 +334,7 @@
                 args: newArgs
               };
               if(callback instanceof Function){
-                callback();
+                await callback();
               }
             } else {
               this.$message({message: this.$t('call.call4') + response.data.error.message, type: 'error', duration: 2000});
@@ -384,7 +388,7 @@
       async callContract(assetChainId,assetId, sender,password, contractAddress, value, methodName, methodDesc, args, gasLimit, price,remark){
         PARAMETER.method = 'callContract';
         PARAMETER.params = [chainID(), assetChainId,assetId, sender,password, contractAddress, value, methodName, methodDesc, args, gasLimit, price,remark];
-        axios.post(LOCALHOST_API_URL, PARAMETER)
+        await axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
           if (response.data.hasOwnProperty('result')) {
             this.callResult=this.$t('call.call11') + response.data.result.txHash;
@@ -400,15 +404,21 @@
        *  获取密码框的密码
        * @param password
        **/
+      async confirmCallWrapper(password) {
+        this.load = true;
+        await this.confirmCall(password);
+        this.load = false
+      },
+
       async confirmCall(password) {
         let newArgs = [];
         if (this.callForm.parameterList.length > 0) {
             let newArgs = getArgs(this.callForm.parameterList);
             if (newArgs.allParameter) {
-              this.callContract(chainID(), 1, this.addressInfo.address, password, this.contractAddress, Number(Times(this.callForm.values, 100000000)),this.selectionData.name, this.selectionData.desc, newArgs.args, this.callForm.gas, this.callForm.price, this.callForm.addtion);
+              await this.callContract(chainID(), 1, this.addressInfo.address, password, this.contractAddress, Number(Times(this.callForm.values, 100000000)),this.selectionData.name, this.selectionData.desc, newArgs.args, this.callForm.gas, this.callForm.price, this.callForm.addtion);
             }
         }else{
-            this.callContract(chainID(), 1, this.addressInfo.address, password, this.contractAddress, Number(Times(this.callForm.values, 100000000)),this.selectionData.name, this.selectionData.desc, newArgs, this.callForm.gas, this.callForm.price, this.callForm.addtion);
+            await this.callContract(chainID(), 1, this.addressInfo.address, password, this.contractAddress, Number(Times(this.callForm.values, 100000000)),this.selectionData.name, this.selectionData.desc, newArgs, this.callForm.gas, this.callForm.price, this.callForm.addtion);
         }
       },
 

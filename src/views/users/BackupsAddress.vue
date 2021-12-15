@@ -112,11 +112,15 @@
                             this.newAddressInfo.aesPri = response.data.result.aesPri;
                             if (this.backType === 0) {
                                 let FileSaver = require('file-saver');
+                                let pri = '';
+                                if (!this.newAddressInfo.aesPri) {
+                                    pri = this.newAddressInfo.pri;
+                                }
                                 let fileInfo = {
                                     address: this.newAddressInfo.address,
                                     encryptedPrivateKey: this.newAddressInfo.aesPri,
                                     pubKey: this.newAddressInfo.pub,
-                                    priKey: null
+                                    priKey: pri
                                 };
                                 let blob = new Blob([JSON.stringify(fileInfo)], {type: "text/plain;charset=utf-8"});
                                 FileSaver.saveAs(blob, this.newAddressInfo.address + ".keystore");

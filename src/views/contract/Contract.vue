@@ -145,11 +145,13 @@
             if (!this.addressInfo) {
                 this.addressInfo = {};
             }
-            if (!this.addressInfo.address) {
-                this.$message({message: this.$t('error.ac_0052'), type: 'error', duration: 1000});
+            // if (!this.addressInfo.address) {
+            //     this.$message({message: this.$t('error.ac_0052'), type: 'error', duration: 1000});
+            // }
+            if (this.addressInfo.address) {
+                this.myCollectionList = myContractList(this.addressInfo.address);
+                this.defaultAddress = this.addressInfo.address;
             }
-            this.myCollectionList = myContractList(this.addressInfo.address);
-            this.defaultAddress = this.addressInfo.address;
         },
         mounted() {
             if (this.addressInfo.address) {

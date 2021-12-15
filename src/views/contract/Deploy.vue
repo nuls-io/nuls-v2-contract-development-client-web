@@ -63,15 +63,15 @@
                 </div>
             </div>
             <el-form-item class="form-next">
-                <el-button type="success" @click="submitTestDeploy('deployForm',tipSuccess)">
+                <el-button type="success" @click="submitTestDeploy('deployForm',tipSuccess)" v-loading="testLoad" :disabled="testLoad">
                     {{$t('deploy.deploy5')}}
                 </el-button>
                 <br/>
                 <div class="mb_20"></div>
-                <el-button @click="submitDeploy('deployForm')">{{$t('deploy.deploy6')}}</el-button>
+                <el-button @click="submitDeploy('deployForm')" v-loading="load" :disabled="load">{{$t('deploy.deploy6')}}</el-button>
             </el-form-item>
         </el-form>
-        <Password ref="password" @passwordSubmit="confirmDeploy">
+        <Password ref="password" @passwordSubmit="confirmDeployWrapper">
         </Password>
     </div>
 </template>
@@ -169,6 +169,8 @@
                 isTestSubmit: false,//测试合约
                 fileName: '',//jar文件名
                 deployLoading: false,//获取参数加载动画
+                testLoad: false,
+                load: false,
             };
         },
         props: {
@@ -270,9 +272,9 @@
                 PARAMETER.method = 'validateContractCreate';
                 PARAMETER.params = [chainID(), createAddress, gasLimit, price, contractCode, args];
                 return axios.post(LOCALHOST_API_URL, PARAMETER)
-                    .then((response) => {
+                    .then(async (response) => {
                         if (response.data.hasOwnProperty("result")) {
-                            this.imputedContractCreateGas(createAddress, contractCode, args, callback);
+                            await this.imputedContractCreateGas(createAddress, contractCode, args, callback);
                         } else {
                             this.$message({
                                 message: this.$t('deploy.deploy11') + response.data.error.message,
@@ -297,10 +299,10 @@
                 PARAMETER.method = 'imputedContractCreateGas';
                 PARAMETER.params = [chainID(), createAddress, contractCode, args];
                 return axios.post(LOCALHOST_API_URL, PARAMETER)
-                    .then((response) => {
+                    .then(async (response) => {
                         if (response.data.hasOwnProperty("result")) {
                             this.deployForm.gas = response.data.result.gasLimit;
-                            this.makeCreateData(response.data.result.gasLimit, createAddress, contractCode, args, this.deployForm.alias, callback);
+                            await this.makeCreateData(response.data.result.gasLimit, createAddress, contractCode, args, this.deployForm.alias, callback);
                         } else {
                             this.$message({
                                 message: this.$t('deploy.deploy13') + response.data.error.message,
@@ -364,7 +366,7 @@
                     this.isTestSubmit = true;
                     this.contractCreateTxData = contractCreate;
                     if (callback instanceof Function) {
-                        callback();
+                        await callback();
                         console.log("callback");
                     }
                 }
@@ -392,20 +394,22 @@
              * 测试部署合约
              * @param formName
              **/
-            submitTestDeploy(formName, callback) {
+            async submitTestDeploy(formName, callback) {
                 this.deployForm.price = sdk.CONTRACT_MINIMUM_PRICE;
                 let newArgs = getArgs(this.deployForm.parameterList);
                 if (!this.deployForm.alias || !newArgs.allParameter) {
                     this.$message({message: this.$t('error.10013'), type: 'error', duration: 2000});
                 }
-                this.$refs[formName].validate((valid) => {
+                this.$refs[formName].validate(async (valid) => {
+                    this.testLoad = true;
                     if (valid) {
                         if (newArgs.allParameter) {
-                            this.validateContractCreate(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args, callback);
+                            await this.validateContractCreate(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args, callback);
                         }
                     } else {
                         return false;
                     }
+                    this.testLoad = false;
                 });
             },
 
@@ -414,28 +418,33 @@
              * 部署合约
              * @param formName
              **/
-            submitDeploy(formName) {
-                if (!this.isTestSubmit) {
-                    this.submitTestDeploy(formName, this.showPassword);
-                } else {
-                    this.$refs[formName].validate((valid) => {
-                        if (valid) {
-                            this.showPassword();
-                        } else {
-                            return false;
-                        }
-                    });
+            async submitDeploy(formName) {
+                this.deployForm.price = sdk.CONTRACT_MINIMUM_PRICE;
+                let newArgs = getArgs(this.deployForm.parameterList);
+                if (!this.deployForm.alias || !newArgs.allParameter) {
+                    this.$message({message: this.$t('error.10013'), type: 'error', duration: 2000});
                 }
+                this.$refs[formName].validate(async (valid) => {
+                    if (valid) {
+                        this.load = true;
+                        if (newArgs.allParameter) {
+                            await this.validateContractCreate(this.createAddress, sdk.CONTRACT_MAX_GASLIMIT, sdk.CONTRACT_MINIMUM_PRICE, this.deployForm.hex, newArgs.args, this.showPassword);
+                        }
+                        this.load = false;
+                    } else {
+                        return false;
+                    }
+                });
             },
 
             /**
              * 展示密码窗口
              **/
-            showPassword() {
+            async showPassword() {
                 if (this.addressInfo.encrypted) {
                     this.$refs.password.showPassword(true);
                 } else {
-                    this.confirmDeploy();
+                    await this.confirmDeploy();
                 }
                 this.isTestSubmit = false;
             },
@@ -444,20 +453,26 @@
              *  获取密码框的密码
              * @param password
              **/
+            async confirmDeployWrapper(password) {
+                this.load = true;
+                await this.confirmDeploy(password);
+                this.load = false
+            },
+
             async confirmDeploy(password) {
                 let newArgs = getArgs(this.deployForm.parameterList);
                 if (newArgs.allParameter) {
                     PARAMETER.method = 'createContract';
                     PARAMETER.params = [chainID(), chainID(), 1, this.addressInfo.address, password, this.deployForm.hex, this.deployForm.alias, newArgs.args, this.deployForm.gas, this.deployForm.price, this.deployForm.addtion];
-                    axios.post(LOCALHOST_API_URL, PARAMETER)
-                        .then((response) => {
+                    await axios.post(LOCALHOST_API_URL, PARAMETER)
+                        .then(async (response) => {
                             if (response.data.hasOwnProperty('result')) {
                                 this.$message({
                                     message: this.$t('deploy.deploy24') + response.data.result.contractAddress,
                                     type: 'success',
                                     duration: 2000
                                 });
-                                this.getDefaultContract();
+                                await this.getDefaultContract();
                             } else {
                                 this.$message({
                                     message: this.$t('deploy.deploy25') + response.data.error.message,
@@ -488,14 +503,14 @@
                         //获取文件流
                         let reader = new FileReader();
                         reader.readAsDataURL(file);
-                        reader.onload = (() => {
+                        reader.onload = (async () => {
                             PARAMETER.method = 'uploadContractJar';
                             PARAMETER.params = [chainID(), reader.result];
-                            axios.post(LOCALHOST_API_URL, PARAMETER)
-                                .then((response) => {
+                            await axios.post(LOCALHOST_API_URL, PARAMETER)
+                                .then(async (response) => {
                                     if (response.data.hasOwnProperty("result")) {
                                         _this.deployForm.hex = response.data.result.code;
-                                        _this.getParameter();
+                                        await _this.getParameter();
                                     } else {
                                         this.$message({
                                             message: response.data.error.message,
@@ -511,11 +526,11 @@
                 }
             },
 
-            getDefaultContract() {
+            async getDefaultContract() {
                 PARAMETER.method = 'getDefaultContractCode';
                 PARAMETER.params = [];
-                axios.post(LOCALHOST_API_URL, PARAMETER)
-                    .then((response) => {
+                await axios.post(LOCALHOST_API_URL, PARAMETER)
+                    .then(async (response) => {
                         if (response.data.hasOwnProperty("result")) {
                             if (response.data.result.haveJarFile) {
                                 this.autoLoad = '1';
@@ -525,7 +540,7 @@
                                 this.deployForm.price = '';
                                 this.deployForm.addtion = '';
                                 this.fileName = response.data.result.fileName;
-                                this.getParameter();
+                                await this.getParameter();
                             }
                         } else {
                             this.$message({message: response.data.error.message, type: 'error', duration: 2000});
