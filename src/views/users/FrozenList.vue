@@ -68,7 +68,7 @@
       this.addressInfo = addressInfo(1);
       setInterval(() => {
         this.addressInfo = addressInfo(1);
-      }, 500);
+      }, 600);
     },
     mounted() {
       if (this.$route.query.accountInfo) {

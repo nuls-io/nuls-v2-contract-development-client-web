@@ -56,7 +56,6 @@
       };
     },
     created() {
-      this.getVersionInfo();
       this.seeLog();
 
     },

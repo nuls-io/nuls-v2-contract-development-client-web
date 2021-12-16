@@ -42,7 +42,7 @@
             this.getHeaderInfo();
             setInterval(() => {
                 this.serviceUrls = API_URL;
-            }, 500);
+            }, 600);
         },
         mounted() {
             setInterval(() => {

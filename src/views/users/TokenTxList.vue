@@ -96,7 +96,7 @@
       this.addressInfo = addressInfo(1);
       setInterval(() => {
         this.addressInfo = addressInfo(1);
-      }, 500);
+      }, 600);
     },
     watch: {
       addressInfo(val, old) {

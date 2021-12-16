@@ -156,7 +156,7 @@
         if (info && info.address) {
           this.defaultAddress = info.address;
         }
-      }, 500);
+      }, 600);
     },
     watch: {
       modelList(val) {
