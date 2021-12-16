@@ -16,7 +16,7 @@ export function post(url, methodName, data = []) {
   axios.defaults.baseURL = config.API_URL;
   setInterval(() => {
     axios.defaults.baseURL = config.API_URL;
-  }, 500);
+  }, 600);
   return new Promise((resolve, reject) => {
     data.unshift(chainID());
     const params = {"jsonrpc": "2.0", "method": methodName, "params": data, "id": 5898};
