@@ -655,7 +655,8 @@ const cn = {
     "newAddress29": "请选择知晓密码提示",
     "newAddress30": "创建账户失败：",
     "newAddress31": "导出私钥失败：",
-    "newAddress": "",
+    "newAddress32": "自定义密码",
+    "newAddress33": "若不自定义密码，后续发送交易将不用再输入密码验证",
 
   },
 

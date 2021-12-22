@@ -11,13 +11,24 @@
                                 <el-input type="textarea" v-model.trim="importKeyForm.keys"
                                           autocomplete="off"></el-input>
                             </el-form-item>
-                            <el-form-item :label="$t('newAddress.newAddress6')" prop="pass">
-                                <el-input v-model="importKeyForm.pass" type="password" autocomplete="off"></el-input>
-                            </el-form-item>
-                            <el-form-item :label="$t('newAddress.newAddress7')" prop="checkPass">
-                                <el-input v-model="importKeyForm.checkPass" type="password"
-                                          autocomplete="off"></el-input>
-                            </el-form-item>
+                            <div class="custom-password">
+                                <el-tooltip class="item" effect="dark" :content="$t('newAddress.newAddress33')" placement="top-start">
+                                    <span>
+                                      {{ $t('newAddress.newAddress32') }}
+                                      <i class="el-icon-info"></i>
+                                    </span>
+                                </el-tooltip>
+                                <el-switch v-model="importKeyForm.usePassword"></el-switch>
+                            </div>
+                            <template v-if="importKeyForm.usePassword">
+                                <el-form-item :label="$t('newAddress.newAddress6')" prop="pass">
+                                  <el-input v-model="importKeyForm.pass" type="password" autocomplete="off"></el-input>
+                                </el-form-item>
+                                <el-form-item :label="$t('newAddress.newAddress7')" prop="checkPass">
+                                  <el-input v-model="importKeyForm.checkPass" type="password"
+                                            autocomplete="off"></el-input>
+                                </el-form-item>
+                            </template>
                             <el-form-item class="form-bnt">
                                 <el-button type="success" @click="keyImport('importKeyForm')">
                                     {{$t('importAddress.importAddress8')}}
@@ -30,18 +41,29 @@
                     <div class="new_address">
                         <el-form :model="passwordForm" status-icon :rules="passwordRules" ref="passwordForm"
                                  class="w630">
-                            <el-form-item :label="$t('newAddress.newAddress6')" prop="pass">
-                                <el-input type="password" v-model="passwordForm.pass" autocomplete="off"></el-input>
-                            </el-form-item>
-                            <el-form-item :label="$t('newAddress.newAddress7')" prop="checkPass">
-                                <el-input type="password" v-model="passwordForm.checkPass"
-                                          autocomplete="off"></el-input>
-                            </el-form-item>
-                            <el-form-item label="" prop="agreement">
-                                <el-checkbox-group v-model="passwordForm.agreement">
+                            <div class="custom-password">
+                                <el-tooltip class="item" effect="dark" :content="$t('newAddress.newAddress33')" placement="top-start">
+                                    <span>
+                                      {{ $t('newAddress.newAddress32') }}
+                                      <i class="el-icon-info"></i>
+                                    </span>
+                                </el-tooltip>
+                                <el-switch v-model="passwordForm.usePassword"></el-switch>
+                            </div>
+                            <template v-if="passwordForm.usePassword">
+                                <el-form-item :label="$t('newAddress.newAddress6')" prop="pass">
+                                  <el-input type="password" v-model="passwordForm.pass" autocomplete="off"></el-input>
+                                </el-form-item>
+                                <el-form-item :label="$t('newAddress.newAddress7')" prop="checkPass">
+                                  <el-input type="password" v-model="passwordForm.checkPass"
+                                            autocomplete="off"></el-input>
+                                </el-form-item>
+                                <el-form-item label="" prop="agreement">
+                                  <el-checkbox-group v-model="passwordForm.agreement">
                                     <el-checkbox :label="$t('newAddress.newAddress8')" name="agreement"></el-checkbox>
-                                </el-checkbox-group>
-                            </el-form-item>
+                                  </el-checkbox-group>
+                                </el-form-item>
+                            </template>
                             <el-form-item class="form-bnt">
                                 <el-button type="success" @click="submitPasswordForm('passwordForm')"
                                            :disabled="!passwordForm.agreement">
@@ -119,11 +141,13 @@
                     pass: '',
                     checkPass: '',
                     agreement: true,
+                    usePassword: false,
                 },
                 importKeyForm: {
                     key: '',
                     pass: '',
-                    checkPass: ''
+                    checkPass: '',
+                    usePassword: false,
                 },
                 passwordRules: {
                     pass: [
@@ -201,7 +225,11 @@
              */
             importWallet() {
                 PARAMETER.method = 'importAccountByPriKey';
-                PARAMETER.params = [chainID(), this.importKeyForm.keys, this.importKeyForm.pass, true];
+                if (this.importKeyForm.usePassword) {
+                    PARAMETER.params = [chainID(), this.importKeyForm.keys, this.importKeyForm.pass, true];
+                } else {
+                    PARAMETER.params = [chainID(), this.importKeyForm.keys, '', true];
+                }
                 axios.post(LOCALHOST_API_URL, PARAMETER)
                     .then((response) => {
                         if (response.data.hasOwnProperty('result')) {
@@ -230,7 +258,12 @@
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
                         PARAMETER.method = 'createAccount';
-                        PARAMETER.params = [chainID(), this.passwordForm.pass];
+                        if (this.importKeyForm.usePassword) {
+                            PARAMETER.params = [chainID(), this.passwordForm.pass];
+                        } else {
+                            PARAMETER.params = [chainID(), ''];
+                        }
+                        // PARAMETER.params = [chainID(), this.passwordForm.pass];
                         axios.post(LOCALHOST_API_URL, PARAMETER)
                             .then((response) => {
                                 if (response.data.hasOwnProperty('result')) {
@@ -365,6 +398,20 @@
     .import-address {
         .bg-white {
             height: 130px;
+        }
+        .custom-password {
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            line-height: 40px;
+            .el-switch {
+                margin-left: 10px;
+            }
+        }
+        .custom-switch {
+            .el-form-item__label {
+                line-height: 40px;
+            }
         }
 
         .new_import {

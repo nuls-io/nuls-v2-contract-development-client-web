@@ -675,7 +675,8 @@ const en = {
     "newAddress29": "Please choose a password-aware prompt",
     "newAddress30": "Account creation failed:",
     "newAddress31": "Export private key failed:",
-    "newAddress": "",
+    "newAddress32": "Custom Password",
+    "newAddress33": "If you do not customize the password, you will not need to enter the password to verify subsequent transactions",
   },
 
   "editPassword": {

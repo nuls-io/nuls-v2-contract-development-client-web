@@ -26,9 +26,25 @@
           <el-form-item label="Price" prop="price">
             <el-input v-model="callForm.price"></el-input>
           </el-form-item>
-          <el-form-item label="Value" prop="values" v-show="selectionData.payable">
+          <el-form-item label="Value(NULS)" prop="values" v-show="selectionData.payable">
             <el-input v-model="callForm.values"></el-input>
           </el-form-item>
+          <div
+            class="transfer-multiple-asset"
+            v-if="selectionData.payableMultyAsset"
+            style="background-color: #fff;width: 500px;padding: 10px 0 15px"
+          >
+            <el-form-item label="Other Assets" prop="region" class="search-model">
+              <el-select v-model="callForm.assetInfo" @change="changeAsset">
+                <el-option v-for="(item,index) in multipleAsset" :key="index" :label="item.symbol"
+                           :value="item">
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="Value" prop="otherValue">
+              <el-input v-model="callForm.otherValue"></el-input>
+            </el-form-item>
+          </div>
           <el-form-item :label="$t('public.remarks')" prop="addtion">
              <el-input type="textarea" :rows="3" maxlength="200" show-word-limit v-model="callForm.addtion">
            </el-input>
@@ -55,9 +71,14 @@
   import utils from 'nuls-sdk-js/lib/utils/utils'
   import {getNulsBalance} from '@/api/requestData'
   import Password from '@/components/PasswordBar'
-  import {getArgs, Times, chainID,chainIdNumber} from '@/api/util'
+  import {getArgs, Times, chainID, chainIdNumber, timesDecimals1} from '@/api/util'
   import {LOCALHOST_API_URL, PARAMETER} from '@/config.js'
   import axios from 'axios'
+
+  const MAIN_INFO = {
+    chainId: 2,
+    assetId: 1
+  }
 
   export default {
     data() {
@@ -90,6 +111,7 @@
       let validateValues = (rule, value, callback) => {
         if (value < 0) {
           this.callForm.values = 0;
+          this.callForm.otherValue = 0;
         } else {
           callback();
         }
@@ -99,6 +121,7 @@
         first:0,//首次进入
         addressInfo: {},//地址信息
         balanceInfo: {},//账户余额信息
+        assetInfo: null, // 往合约转的其他资产资产信息
         //调用接口form
         callForm: {
           modelData: [],
@@ -108,6 +131,8 @@
           gas: 0,
           price: 0,
           values: 0,
+          assetInfo: "",
+          otherValue: "",
          addtion: '',
         },
         callRules: {
@@ -119,17 +144,24 @@
           ],
           values: [
             {validator: validateValues, trigger: 'blur'}
+          ],
+          otherValue: [
+            {validator: validateValues, trigger: 'blur'}
           ]
         },
         //选中的方法
         selectionData: {
           view: true,
-          payable:false,
+          payable: false, // 是否可向该合约转nuls
+          payableMultyAsset: false // 是否可向该合约转其他资产
         },
         contractCallData: {},//调用合约data
         callResult: '',//调用合约结果
         defaultAddress: '',//默认地址
-        load: false
+        load: false,
+        multipleAsset: [], // 可转入合约的平行链资产列表
+        newArgs: [],//合约参数
+        multyAssetArray: []
       };
     },
     props: {
@@ -157,6 +189,10 @@
           this.defaultAddress = info.address;
         }
       }, 600);
+
+      setTimeout(() => {
+        this.getAccountCrossLedgerList(this.addressInfo.address);
+      }, 600)
     },
     watch: {
       modelList(val) {
@@ -165,6 +201,7 @@
       addressInfo(val, old) {
         if (val.address !== old.address && old.address) {
           this.getBalanceByAddress(chainID(), 1, this.addressInfo.address);
+          this.getAccountCrossLedgerList(this.addressInfo.address);
         }
       }
     },
@@ -176,13 +213,32 @@
       changeModel(val) {
         this.callResult = '';
         this.callForm.parameterList=[];
+        this.assetInfo = null;
+        this.callForm.assetInfo = "";
+        this.newArgs = [];
         for (let itme of this.callForm.modelData) {
           if (itme.keys === val) {
             this.selectionData = itme;
             this.callForm.parameterList = itme.params;
             this.callForm.values = 0;
+            this.callForm.otherValue = 0;
             this.callForm.gas = 0;
             this.callForm.price = 0;
+            if (!this.selectionData.view) { //上链方法
+              if (this.selectionData.params.length === 0) { //没有参数
+                if (this.selectionData.payable) {
+                  this.imputedContractCallGas(this.addressInfo.address, Number(Times(this.callForm.values, 100000000)), this.contractAddress, this.selectionData.name, this.selectionData.desc, this.newArgs)
+                } else {
+                  //
+                }
+              } else { //有参数
+                this.newArgs = getArgs(this.callForm.parameterList);
+                //console.log(this.newArgs);
+                if (this.newArgs.allParameter) {
+                  this.imputedContractCallGas(this.addressInfo.address, Number(Times(this.callForm.values, 100000000)), this.contractAddress, this.selectionData.name, this.selectionData.desc, this.newArgs.args)
+                }
+              }
+            }
           }
         }
       },
@@ -191,7 +247,7 @@
        * 判断所有必填参数是否有值
        **/
       changeParameter() {
-         if (!this.selectionData.view) {
+        if (!this.selectionData.view && !this.selectionData.payable && !this.selectionData.payableMultyAsset) {
             this.chainMethodCall();
         }
       },
@@ -215,8 +271,28 @@
                 await this.methodCall(this.contractAddress, this.selectionData.name, this.selectionData.desc, newArgs)
               }
             } else { //上链方法
-              await this.chainMethodCall(this.showPassword);
+              // await this.chainMethodCall(this.showPassword);
             // this.$refs.password.showPassword(true);
+              if (this.selectionData.params.length !== 0) {
+                this.newArgs = getArgs(this.callForm.parameterList);
+                if (this.newArgs.allParameter) {
+                  await this.imputedContractCallGas(this.addressInfo.address, Number(Times(this.callForm.values, 100000000)), this.contractAddress, this.selectionData.name, this.selectionData.desc, this.newArgs.args)
+                }
+              } else {
+                if (this.selectionData.payableMultyAsset && !this.assetInfo) return false;
+                const nulsValue = Number(Times(this.callForm.values, 100000000))
+                let multyAssets = [], value;
+                if (this.assetInfo) {
+                  const { chainId: assetChainId, assetId, decimals } = this.assetInfo;
+                  value = timesDecimals1(this.callForm.otherValue, decimals);
+                  multyAssets = [
+                    { value, assetChainId, assetId }
+                  ]
+                }
+                await this.imputedContractCallGas(this.addressInfo.address, nulsValue, this.contractAddress, this.selectionData.name, this.selectionData.desc, this.newArgs, multyAssets);
+              }
+              this.getBalanceByAddress(chainID(), 1, this.addressInfo.address);
+              await this.showPassword()
             }
             this.load = false;
           } else {
@@ -312,10 +388,21 @@
        * @param methodDesc
        * @param args
        */
-      async imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args,callback) {
+      async imputedContractCallGas(sender, value, contractAddress, methodName, methodDesc, args,multyAssets) {
           // return await post('/','imputedContractCallGas',[sender, value, contractAddress, methodName, methodDesc, args])
+        this.multyAssetArray = []
+        let multyAssetArray = [];
+        if (multyAssets && multyAssets.length) {
+          let length = multyAssets.length;
+          multyAssetArray = new Array(length);
+          for (let i = 0; i < length; i++) {
+            let multyAsset = multyAssets[i];
+            multyAssetArray[i] = [multyAsset.value, multyAsset.assetChainId, multyAsset.assetId];
+          }
+        }
+        this.multyAssetArray = multyAssetArray;
           PARAMETER.method = 'imputedContractCallGas';
-          PARAMETER.params =  [chainID(),sender, value, contractAddress, methodName, methodDesc, args];
+          PARAMETER.params =  [chainID(),sender, value, contractAddress, methodName, methodDesc, args, multyAssetArray];
           return axios.post(LOCALHOST_API_URL, PARAMETER)
           .then(async (response) => {
             if (response.data.hasOwnProperty("result")) {
@@ -333,9 +420,9 @@
                 methodDesc: methodDesc,
                 args: newArgs
               };
-              if(callback instanceof Function){
+              /*if(callback instanceof Function){
                 await callback();
-              }
+              }*/
             } else {
               this.$message({message: this.$t('call.call4') + response.data.error.message, type: 'error', duration: 2000});
             }
@@ -387,7 +474,7 @@
 
       async callContract(assetChainId,assetId, sender,password, contractAddress, value, methodName, methodDesc, args, gasLimit, price,remark){
         PARAMETER.method = 'callContract';
-        PARAMETER.params = [chainID(), assetChainId,assetId, sender,password, contractAddress, value, methodName, methodDesc, args, gasLimit, price,remark];
+        PARAMETER.params = [chainID(), assetChainId,assetId, sender,password, contractAddress, value, methodName, methodDesc, args, gasLimit, price,remark, this.multyAssetArray];
         await axios.post(LOCALHOST_API_URL, PARAMETER)
           .then((response) => {
           if (response.data.hasOwnProperty('result')) {
@@ -421,7 +508,22 @@
             await this.callContract(chainID(), 1, this.addressInfo.address, password, this.contractAddress, Number(Times(this.callForm.values, 100000000)),this.selectionData.name, this.selectionData.desc, newArgs, this.callForm.gas, this.callForm.price, this.callForm.addtion);
         }
       },
-
+      async getAccountCrossLedgerList(address) {
+        const res = await this.$post('/', 'getAccountCrossLedgerList', [address])
+        if (res.result) {
+          this.multipleAsset = res.result
+        }
+      },
+      changeAsset(asset) {
+        this.assetInfo = asset;
+        this.callForm.assetInfo = asset.symbol;
+        const { chainId: assetChainId, assetId, decimals } = this.assetInfo;
+        const value = timesDecimals1(this.callForm.values, decimals);
+        const multyAssets = [
+          { value, assetChainId, assetId }
+        ];
+        this.imputedContractCallGas(this.addressInfo.address, 0, this.contractAddress, this.selectionData.name, this.selectionData.desc, this.newArgs, multyAssets);
+      }
     }
   }
 </script>
