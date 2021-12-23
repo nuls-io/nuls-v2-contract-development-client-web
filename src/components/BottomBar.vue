@@ -6,9 +6,13 @@
                     <div class="url">
                         {{$t('bottom.serviceNode')}}: <u class="click" @click="toUrl('nodeService')">{{serviceUrls}}</u>
                     </div>
-                    <div :class="{'version_color':isNew!='Y'}" class="version">
+                    <div :class="{'version_color':isNew!='Y'}" v-show="isNew!='Y'" class="version">
                         <span>{{$t('public.version')}}: </span>
-                        {{versionInfo}}
+                        {{$t('public.versionNLocal')}}: {{versionLocal}}, {{$t('public.versionNLatest')}}: {{versionMaven}}, {{$t('public.versionN')}}
+                    </div>
+                    <div v-show="isNew=='Y'" class="version">
+                        <span>{{$t('public.version')}}: </span>
+                        {{$t('public.versionY')}}: {{versionLocal}}
                     </div>
                 </div>
                 <div class="right fr">
@@ -32,7 +36,9 @@
             return {
                 heightInfo: [],//高度信息
                 serviceUrls: '', //服务节点
-                versionInfo: '',//版本信息
+                versionInfo: '',//版本信息描述
+                versionLocal: '',//后台版本信息
+                versionMaven: '',//Maven仓库版本信息
                 isNew: '',//是否最新版本
             }
         },
@@ -167,13 +173,20 @@
              * 获取离线智能合约客户端的版本信息
              */
             getVersionInfo() {
+                let version = localStorage.getItem("versionInfo");
+                if (!version) {
+                    localStorage.clear();
+                }
                 const url = LOCALHOST_API_URL;
                 const params = {"jsonrpc": "2.0", "method": "getVersionInfo", "params": [], "id": 5898};
                 axios.post(url, params)
                     .then((response) => {
                         if (response.data.hasOwnProperty("result")) {
-                            this.versionInfo = response.data.result.version;
                             this.isNew = response.data.result.isNew;
+                            this.versionLocal = response.data.result.versionLocal;
+                            this.versionMaven = response.data.result.versionMaven;
+                            this.versionInfo = this.versionLocal;
+                            localStorage.setItem("versionInfo", this.versionInfo);
                         }
                     })
                     .catch((error) => {
