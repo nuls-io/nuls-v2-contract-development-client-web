@@ -286,10 +286,13 @@
     @import "./../assets/css/style";
 
     .bottom {
-        height: 60px;
+        min-height: 60px;
+        padding: 10px 0;
         border-top: 1px solid @Dcolour;
         position: fixed;
-        line-height: 60px;
+        /*line-height: 60px;*/
+        display: flex;
+        align-items: center;
         bottom: 0;
         background-color: @Bcolour;
         width: 100%;

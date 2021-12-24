@@ -6,7 +6,7 @@
             <div class="top_ico">
                 <i class="el-icon-plus click" @click="toUrl('newAddress')"></i>
             </div>
-            <el-table :data="addressList" stripe border>
+            <el-table :data="addressList" stripe border v-loading="load" element-loading-spinner="el-icon-loading">
                 <el-table-column prop="address" :label="$t('address.address1')" align="center" min-width="200">
                 </el-table-column>
                 <el-table-column prop="balance" :label="$t('address.address2')" align="center">
@@ -85,12 +85,14 @@
                 remarkDialog: false,//备注弹框
                 remarkInfo: '',//备注信息
                 defaultAddress: '',//默认地址
+                load: false
             };
         },
         components: {
             Password,
         },
         created() {
+            this.load = true;
             this.getAddressList();
             let info = JSON.parse(localStorage.getItem(chainIdNumber()));
             if (info && info.address) {
@@ -106,8 +108,8 @@
             async getAddressList() {
                 PARAMETER.method = 'getAccountList';
                 PARAMETER.params = [chainID(), this.pageIndex, this.pageSize];
-                axios.post(LOCALHOST_API_URL, PARAMETER)
-                    .then((response) => {
+                await axios.post(LOCALHOST_API_URL, PARAMETER)
+                    .then(async (response) => {
                         if (response.data.hasOwnProperty("result")) {
                             this.addressList = response.data.result.list;
                             //如果没有账户跳转到创建账户界面
@@ -133,9 +135,11 @@
                                 duration: 1000
                             });
                         }
+                        this.load = false;
                     }).catch((error) => {
-                    this.$message({message: this.$t('address.address14') + error, type: 'error', duration: 1000});
-                });
+                        this.$message({message: this.$t('address.address14') + error, type: 'error', duration: 1000});
+                        this.load = false;
+                    });
             },
 
             /**
