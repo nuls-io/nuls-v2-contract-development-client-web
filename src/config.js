@@ -15,7 +15,7 @@ setInterval(() => {
 }, 600);
 //正式、测试网络的api
 export let LOCALHOST_API_URL = "http://"+window.location.host+"/offlineSmartContract";
-// export let LOCALHOST_API_URL = "http://192.168.1.39:18088/offlineSmartContract";
+// export let LOCALHOST_API_URL = "http://192.168.5.5:18088/offlineSmartContract";
 export let PARAMETER = {jsonrpc: '2.0', method: '', params: [], id: 5898};
 
 
