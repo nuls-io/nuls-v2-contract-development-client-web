@@ -480,7 +480,8 @@ const cn = {
     "undefined": "",
     "0": "普通合约",
     "1": "NRC20",
-    "2": "NRC721"
+    "2": "NRC721",
+    "3": "NRC1155"
   },
 
   "password": {

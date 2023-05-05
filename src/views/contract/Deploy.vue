@@ -204,7 +204,7 @@ export default {
       if (val !== old && old) {
         this.deployForm.parameterList = [];
         this.deployForm.gas = '';
-        this.deployForm.price = '';
+        this.deployForm.price = sdk.CONTRACT_MINIMUM_PRICE;
         this.deployForm.alias = '';
       }
     }
@@ -539,7 +539,7 @@ export default {
                 this.deployForm.hex = response.data.result.codeHex;
                 this.deployForm.alias = '';
                 this.deployForm.gas = '';
-                this.deployForm.price = '';
+                this.deployForm.price = sdk.CONTRACT_MINIMUM_PRICE;
                 this.deployForm.addtion = '';
                 this.fileName = response.data.result.fileName;
                 await this.getParameter();

@@ -223,7 +223,7 @@
             this.callForm.values = 0;
             this.callForm.otherValue = 0;
             this.callForm.gas = 0;
-            this.callForm.price = 0;
+            this.callForm.price = sdk.CONTRACT_MINIMUM_PRICE;
             if (!this.selectionData.view) { //上链方法
               if (this.selectionData.params.length === 0) { //没有参数
                 if (this.selectionData.payable) {
